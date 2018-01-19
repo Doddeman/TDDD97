@@ -2,6 +2,15 @@
 	background-color: darkcyan;
 }
 
+	br {
+	display: block;
+	margin: 3px ;
+
+	content: " ";
+}
+
+form label { display: block; }	
+
 #welcome{
 	width: 600px;
 	height: 400px;
@@ -24,7 +33,7 @@
 	height: 133px;
 	float: left;
 	text-align: left;
-	background-color: green;
+	/*background-color: green;*/
 	
 	
 }
@@ -34,7 +43,7 @@
 	height: 257px;
 	float: left;
 	text-align: right;
-	background-color: blue;
+	/*background-color: blue;*/
 	
 
 }

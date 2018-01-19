@@ -16,41 +16,43 @@
    Password: 
    </div>
  <div class = "column">
- <form>
- <input type="text" name="Email as username"> <br>
- <input type="text" name="Password"> <br>
+ <form onsubmit="return signIn()">
+ <input type="email" id="userName" required> <br>
+ <input type="text" id="passwordIn" required> <br>
  <input type="submit" value="Sign in">
  </form>
+  <p id="message" style="text-color:red"></p>
   </div>
  
  
  <div class="row" id="signup">
  <h3 style="text-align: center"> Sign up here </h3>
  <div class="column">
- <label style="text-align:left">First name: </label> <br>
- <label style="text-align:left">Last name: </label> <br>
- <label style="text-align:left">Gender: </label> <br>
- <label style="text-align:left">City: </label> <br>
+ <label>First name: </label> <br>
+ <label >Last name: </label> <br>
+ <label >Gender: </label> <br> 
+ <label >City: </label> <br>
  Country: <br>
  Email: <br>
  Password: <br>
  PSW RPT: 
  </div>
  <div class="column">
- <form>
- <input type="text" name="Firstname"> <br> 
- <input type="text" name="Lastname" > <br>
- 	<select name="Gender" style= width:"100">
+ <form onsubmit="return signUp()">
+ <input type="text" id="firstName" required> <br> 
+ <input type="text" id="lastName" required > <br>
+ 	<select id="gender" required>
 	<option value="male">Male</option>
 	<option value="female">Female</option>
 	</select> <br>
- <input type="text" name="las" > <br>
- <input type="text" name="las" > <br>
- <input type="text" name="las" > <br>
- <input type="text" name="las" > <br>
+ <input type="text" id="city" required> <br>
+ <input type="text" id="country" required> <br>
+ <input type="email" id="email" required> <br>
+ <input type="text" id="passwordUp" required> <br>
+ <input type="text" id="repeat" required> <br>
  <input type="submit" value="Submit">
-
  </form>
+ <p id="message2"></p>
  </div>
  </div>
  
@@ -61,6 +63,7 @@
  
  
  </head>
+ 
  <body id="body">
  <div id="clientviewer">
  </div>
