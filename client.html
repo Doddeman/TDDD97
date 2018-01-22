@@ -7,13 +7,13 @@
  <div id="welcome">
  <div id="image">
  <img src="wimage.png">
- </div>	
- 
+ </div>
+
  <div id="signin" class="row">
   <h3 style="text-align: center"> Sign in here </h3>
    <div class = "column">
    Email: <br>
-   Password: 
+   Password:
    </div>
  <div class = "column">
  <form onsubmit="return signIn()">
@@ -23,23 +23,23 @@
  </form>
   <p id="message" style="text-color:red"></p>
   </div>
- 
- 
+
+
  <div class="row" id="signup">
  <h3 style="text-align: center"> Sign up here </h3>
  <div class="column">
  <label>First name: </label> <br>
  <label >Last name: </label> <br>
- <label >Gender: </label> <br> 
+ <label >Gender: </label> <br>
  <label >City: </label> <br>
  Country: <br>
  Email: <br>
  Password: <br>
- PSW RPT: 
+ PSW RPT:
  </div>
  <div class="column">
  <form onsubmit="return signUp()">
- <input type="text" id="firstName" required> <br> 
+ <input type="text" id="firstName" required> <br>
  <input type="text" id="lastName" required > <br>
  	<select id="gender" required>
 	<option value="male">Male</option>
@@ -55,15 +55,40 @@
  <p id="message2"></p>
  </div>
  </div>
- 
+
  </script>
  <script type="text/view" id="profileview">
- hejhej
+ <div class="tabs">
+ <div class="tab" id="homeTab"> <a onclick="showHomePanel()">Home</a> </div>
+ <div class="tab" id="browseTab"> <a onclick="showBrowsePanel()">Browse</a> </div>
+ <div class="tab" id="accountTab"> <a onclick="showAccountPanel()">Account</a> </div>
+ </div>
+
+ <div class="panels">
+ <div class="panel" id="homePanel">
+ <p>This is home</p>
+ </div>
+ <div class="panel" id="browsePanel">
+ <p>This is browse</p>
+ </div>
+ <div class="panel" id="accountPanel">
+ <p>This is account</p>
+ <div>
+ <form id="passwordChange">
+ <p>Change password:</p>
+ <input type="text" id="oldPassword"> <br>
+ <input type="text" id="newPassword"> <br>
+ <button type="submit">Change</button>
+ </form>
+ <button onclick="signOut()">Signout</button>
+ </div>
+ </div>
+ </div>
  </script>
- 
- 
+
+
  </head>
- 
+
  <body id="body">
  <div id="clientviewer">
  </div>

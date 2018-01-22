@@ -9,15 +9,15 @@
 	content: " ";
 }
 
-form label { display: block; }	
+form label { display: block; }
 
 #welcome{
 	width: 600px;
 	height: 400px;
 	margin-left: auto;
-    margin-right: auto;
+  margin-right: auto;
 	margin-top: 100px;
-	
+
 }
 
 #image {
@@ -26,7 +26,7 @@ form label { display: block; }
 	float: left;
 	background-color: black;
 	margin-right: 10px;
-	
+
 }
 #signin{
 	width: 250px;
@@ -34,8 +34,8 @@ form label { display: block; }
 	float: left;
 	text-align: left;
 	/*background-color: green;*/
-	
-	
+
+
 }
 
 #signup{
@@ -44,20 +44,57 @@ form label { display: block; }
 	float: left;
 	text-align: right;
 	/*background-color: blue;*/
-	
+
 
 }
 
 .column{
-	    float: left;
+	  float: left;
 		text-align: left;
 }
 
 .left {
     width: 25%;
-	
+
 }
 
 .right {
     width: 75%;
+}
+
+.tabs{
+	width: 910px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 100px;
+
+}
+
+.tab{
+	width: 300px;
+	height: 20px;
+	float: left;
+	text-align: center;
+	padding-top: 4px;
+	background-color: darkmagenta;
+	border: 1px solid black;
+}
+
+.tab a:hover{
+	background-color: orangered;
+}
+
+.panels{
+	width: 910px;
+	margin-left: auto;
+	margin-right: auto;
+
+}
+.panel{
+	width: 300px;
+	height: 300px;
+	border: 1px solid black;
+	float: left;
+	display: none;
+
 }
