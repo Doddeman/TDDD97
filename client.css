@@ -78,6 +78,8 @@ form label { display: block; }
 	padding-top: 4px;
 	background-color: darkmagenta;
 	border: 1px solid black;
+	font-weight: bold;
+	font-size: large;
 }
 
 .tab a:hover{
@@ -90,11 +92,16 @@ form label { display: block; }
 	margin-right: auto;
 
 }
+
 .panel{
 	width: 300px;
 	height: 300px;
 	border: 1px solid black;
 	float: left;
 	display: none;
+}
 
+.titles{
+	font-weight: bold;
+	font-size: large;
 }

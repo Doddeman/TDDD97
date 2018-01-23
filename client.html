@@ -66,20 +66,40 @@
 
  <div class="panels">
  <div class="panel" id="homePanel">
- <p>This is home</p>
+ <p class="titles">User information</p>
+ <p>Name: <span id="uName"></span></p>
+ <p>Last Name: <span id="uLastname"></span></p>
+ <p>Gender: <span id="uGender"></span></p>
+ <p>City: <span id="uCity"></span></p>
+ <p>Country: <span id="uCountry"></span></p>
+ <p>Email: <span id="uEmail"></span></p>
+ <p class="titles">User text wall</p>
+ <form id="textWall">
+ <textarea rows="4" cols="35">Write something here...</textarea>
+ <button type="submit">Post</button>
+ </form>
  </div>
  <div class="panel" id="browsePanel">
  <p>This is browse</p>
+ <form>
+ <p class="titles">Search after a user</p>
+ <input type="text" id="findEmail">
+ <button type="submit">Search</button>
+ </form>
+ <p class="titles">Found user profile</p>
+ //Lägg till all profildata som ska visas
  </div>
  <div class="panel" id="accountPanel">
  <p>This is account</p>
  <div>
- <form id="passwordChange">
- <p>Change password:</p>
+ <form onsubmit="changePassword()" id="passwordChange">
+ <p class="titles">Password change</p>
  <input type="text" id="oldPassword"> <br>
  <input type="text" id="newPassword"> <br>
  <button type="submit">Change</button>
  </form>
+ <p id="message3">Testing testing</p>
+ <p class="titles">Signout from application</p>
  <button onclick="signOut()">Signout</button>
  </div>
  </div>

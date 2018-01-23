@@ -72,8 +72,10 @@ function changePassword(){
   var newPassword = document.getElementById('newPassword').value;
   var token = localStorage.getItem('token');
   var changedStatus = serverstub.changePassword(token, oldPassword, newPassword);
+  //Fixa alla möjliga felmeddelanden
   if(newPassword.length < 6){
-    console.log("Too short");
+    //console.log("Too short");
+    document.getElementById('message3').style.color = 'red';
   }
   else {
     if(changedStatus.success == false){
@@ -91,7 +93,24 @@ function signOut(){
   localStorage.removeItem(token);
   displayView(welcomeview);
 };
-
+/*FUNCTIONS FOR HOME PANEL*/
+function getUserInfo(){
+  var token = localStorage.getItem('token');
+  var userData = serverstub.getUserDataByToken(token);
+  document.getElementById('uName').innerHTML = userData.data.firstname;
+  document.getElementById('uLastname').innerHTML = userData.data.lastname;
+  document.getElementById('uGender').innerHTML = userData.data.gender;
+  document.getElementById('uCity').innerHTML = userData.data.city;
+  document.getElementById('uCountry').innerHTML = userData.data.country;
+  document.getElementById('uEmail').innerHTML = userData.data.email;
+};
+/*FUNCTIONS FOR BROWSE PANEL*/
+function searchUser(){
+  var token = localStorage.getItem('token');
+  var searchEmail = document.getElementById('findEmail').innerHTML;
+  var searchedUser = serverstub.getUserDataByEmail(token,searchEmail);
+  //Sätt all profildata, fixa felmeddelande om inte användare finns
+};
 /*FUNCTIONS FOR SHOWING A PANEL*/
 function showHomePanel(){
   document.getElementById('homeTab').style.backgroundColor = 'mediumBlue';
