@@ -20,8 +20,8 @@ function signIn(){
 	var userName = document.getElementById("userName").value;
 	var passwordIn = document.getElementById("passwordIn").value;
 	if(passwordIn.length < 6){
-		document.getElementById('message').style.color = 'red';
-		document.getElementById("message").innerHTML = "Password must be at least 6 letters";
+		document.getElementById('signInMessage').style.color = 'red';
+		document.getElementById("signInMessage").innerHTML = "Password must be at least 6 letters";
 		return false;
 	}
 	else{
@@ -39,13 +39,13 @@ function signIn(){
 	var repeat = document.getElementById("repeat").value;
 
 	if (passwordUp != repeat){
-		document.getElementById('message2').style.color = 'red';
-		document.getElementById("message2").innerHTML = "Password does not match";
+		document.getElementById('signUpMessage').style.color = 'red';
+		document.getElementById("signUpMessage").innerHTML = "Password does not match";
 		return false;
 	}
 	else if(passwordUp.length < 6){
-		document.getElementById('message2').style.color = 'red';
-		document.getElementById("message2").innerHTML = "Password must be at least 6 letters";
+		document.getElementById('signUpMessage').style.color = 'red';
+		document.getElementById("signUpMessage").innerHTML = "Password must be at least 6 letters";
 		return false;
 	}
 	else{
@@ -72,14 +72,18 @@ function changePassword(){
   var newPassword = document.getElementById('newPassword').value;
   var token = localStorage.getItem('token');
   var changedStatus = serverstub.changePassword(token, oldPassword, newPassword);
-  //Fixa alla möjliga felmeddelanden
+  //Flytta in changePassword i if-satserna?
+  //Lägga till felmeddelandet från servstub i changeMessage
   if(newPassword.length < 6){
-    //console.log("Too short");
-    document.getElementById('message3').style.color = 'red';
+    console.log("New password too short");
+    document.getElementById('changeMessage').style.color = 'red';
   }
   else {
     if(changedStatus.success == false){
       console.log("Could not change password");
+    }
+    else if(oldPassword != serverstub.getUserDataByToken(token).password){
+      console.log("Not correct password");
     }
     else {
       console.log("Password changed")
@@ -93,6 +97,7 @@ function signOut(){
   localStorage.removeItem(token);
   displayView(welcomeview);
 };
+
 /*FUNCTIONS FOR HOME PANEL*/
 function getUserInfo(){
   var token = localStorage.getItem('token');
@@ -104,13 +109,25 @@ function getUserInfo(){
   document.getElementById('uCountry').innerHTML = userData.data.country;
   document.getElementById('uEmail').innerHTML = userData.data.email;
 };
+
 /*FUNCTIONS FOR BROWSE PANEL*/
 function searchUser(){
   var token = localStorage.getItem('token');
   var searchEmail = document.getElementById('findEmail').innerHTML;
-  var searchedUser = serverstub.getUserDataByEmail(token,searchEmail);
-  //Sätt all profildata, fixa felmeddelande om inte användare finns
+  var searchedUserData = serverstub.getUserDataByEmail(token,searchEmail);
+
+  if(searchedUserData.success == false){
+    console.log("User does not exist!");
+  }else {
+    document.getElementById('uName2').innerHTML = searchedUserData.data.firstname;
+    document.getElementById('uLastname2').innerHTML = searchedUserData.data.lastname;
+    document.getElementById('uGender2').innerHTML = searchedUserData.data.gender;
+    document.getElementById('uCity2').innerHTML = searchedUserData.data.city;
+    document.getElementById('uCountry2').innerHTML = searchedUserData.data.country;
+    document.getElementById('uEmail2').innerHTML = searchedUserData.data.email;
+  }
 };
+
 /*FUNCTIONS FOR SHOWING A PANEL*/
 function showHomePanel(){
   document.getElementById('homeTab').style.backgroundColor = 'mediumBlue';

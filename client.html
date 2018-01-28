@@ -21,7 +21,8 @@
  <input type="text" id="passwordIn" required> <br>
  <input type="submit" value="Sign in">
  </form>
-  <p id="message" style="text-color:red"></p>
+  <p id="signInMessage" style="text-color:red"></p>
+  </div>
   </div>
 
 
@@ -52,7 +53,7 @@
  <input type="text" id="repeat" required> <br>
  <input type="submit" value="Submit">
  </form>
- <p id="message2"></p>
+ <p id="signUpMessage"></p>
  </div>
  </div>
 
@@ -80,17 +81,21 @@
  </form>
  </div>
  <div class="panel" id="browsePanel">
- <p>This is browse</p>
  <form>
  <p class="titles">Search after a user</p>
  <input type="text" id="findEmail">
  <button type="submit">Search</button>
  </form>
+ <p id="searchMessage">This is the search message!</p>
  <p class="titles">Found user profile</p>
- //Lägg till all profildata som ska visas
+ <p>Name: <span id="uName2"></span></p>
+ <p>Last Name: <span id="uLastname2"></span></p>
+ <p>Gender: <span id="uGender2"></span></p>
+ <p>City: <span id="uCity2"></span></p>
+ <p>Country: <span id="uCountry2"></span></p>
+ <p>Email: <span id="uEmail2"></span></p>
  </div>
  <div class="panel" id="accountPanel">
- <p>This is account</p>
  <div>
  <form onsubmit="changePassword()" id="passwordChange">
  <p class="titles">Password change</p>
@@ -98,7 +103,7 @@
  <input type="text" id="newPassword"> <br>
  <button type="submit">Change</button>
  </form>
- <p id="message3">Testing testing</p>
+ <p id="changeMessage">This is the change message!</p>
  <p class="titles">Signout from application</p>
  <button onclick="signOut()">Signout</button>
  </div>
