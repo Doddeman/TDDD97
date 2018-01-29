@@ -11,6 +11,7 @@ window.onload = function(){
 	}
 	else{
 	displayView(welcomeview);
+  //displayView(profileview);
 	console.log("welcome, token: " + localStorage.getItem('token'));
 	}
 };
@@ -25,10 +26,11 @@ function signIn(){
 		return false;
 	}
 	else{
+    //fråga om serverstub.signin kallas flera gånger...
 		var token = serverstub.signIn(userName, passwordIn).data;
 		localStorage.setItem('token', token);
 		console.log("token: " + localStorage.getItem('token'));
-		displayView(profileview);
+		//displayView(profileview);
 		console.log(serverstub.signIn(userName, passwordIn).success);
 		return true;
 	}
@@ -58,8 +60,10 @@ function signIn(){
 			'city': document.getElementById("city").value,
 			'country': document.getElementById("country").value,
 		}
-		serverstub.signUp(user);
-		console.log(serverstub.signUp(user).success);
+    console.log(serverstub.signUp(user).message);
+    //console.log(serverstub.signUp(user).message);
+		//console.log(serverstub.signUp(user));
+
 
 		return true;
 
@@ -68,34 +72,34 @@ function signIn(){
 
 /*FUNCTIONS FOR ACCOUNT PANEL*/
 function changePassword(){
+  
   var oldPassword = document.getElementById('oldPassword').value;
   var newPassword = document.getElementById('newPassword').value;
+  var newPasswordRpt = document.getElementById('newPasswordRpt').value;
   var token = localStorage.getItem('token');
-  var changedStatus = serverstub.changePassword(token, oldPassword, newPassword);
-  //Flytta in changePassword i if-satserna?
-  //Lägga till felmeddelandet från servstub i changeMessage
+
   if(newPassword.length < 6){
-    console.log("New password too short");
-    document.getElementById('changeMessage').style.color = 'red';
+    document.getElementById('changeMessage').innerHTML = "New password too short";
+    //return false;
+  }
+  else if(newPassword != newPasswordRpt){
+    document.getElementById('changeMessage').innerHTML = "New passwords does not match";
+    //return false;
   }
   else {
-    if(changedStatus.success == false){
-      console.log("Could not change password");
-    }
-    else if(oldPassword != serverstub.getUserDataByToken(token).password){
-      console.log("Not correct password");
-    }
-    else {
-      console.log("Password changed")
-    }
+    var changedStatus = serverstub.changePassword(token, oldPassword, newPassword);
+    document.getElementById('changeMessage').innerHTML = changedStatus.message;
+    //return true;
   }
 };
 
 function signOut(){
+
   var token = localStorage.getItem('token');
+  alert(serverstub.signOut(token).message);
   serverstub.signOut(token);
-  localStorage.removeItem(token);
-  displayView(welcomeview);
+  localStorage.removeItem('token');
+  //displayView(welcomeview);
 };
 
 /*FUNCTIONS FOR HOME PANEL*/

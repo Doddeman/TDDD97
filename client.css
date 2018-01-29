@@ -1,11 +1,9 @@
 #body{
 	background-color: darkcyan;
 }
-
 	br {
 	display: block;
 	margin: 3px ;
-
 	content: " ";
 }
 
@@ -82,9 +80,6 @@ form label { display: block; }
 	font-size: large;
 }
 
-.tab a:hover{
-	background-color: orangered;
-}
 
 .panels{
 	width: 910px;
@@ -94,11 +89,13 @@ form label { display: block; }
 }
 
 .panel{
-	width: 300px;
-	height: 300px;
+	padding-left: 5px;
+	width: 899px;
+	height: 400px;
 	border: 1px solid black;
 	float: left;
 	display: none;
+	background-color: lavender;
 }
 
 .titles{
