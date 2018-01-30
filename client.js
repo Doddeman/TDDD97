@@ -2,7 +2,7 @@ displayView = function(view){
  document.getElementById("clientviewer").innerHTML = view;
 };
 window.onload = function(){
-	localStorage.removeItem('token');
+	//localStorage.removeItem('token');
     welcomeview  = document.getElementById('welcomeview').innerHTML;
     profileview  = document.getElementById('profileview').innerHTML;
 	if(localStorage.getItem('token') !== null && localStorage.getItem('token') !== undefined){

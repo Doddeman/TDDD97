@@ -10,51 +10,43 @@
       <img src="wimage.png">
     </div>
 
-    <div id="signin" class="row">
-      <h3 style="text-align: center"> Sign in here </h3>
-      <div class = "column">
-        Email: <br>
-        Password:
-      </div>
-      <div class = "column">
-        <form onsubmit="return signIn()">
-          <input type="email" id="userName" required> <br>
-          <input type="text" id="passwordIn" required> <br>
-          <input type="submit" value="Sign in">
-        </form>
-        <p id="signInMessage" style="text-color:red"></p>
-      </div>
+    <div id="signin">
+      <div class="header"> Sign in here </div>
+      <form onsubmit="return signIn()">
+        <div class="row"> Email: <input type="email" id="userName" required> </div>
+        <div class="row"> Password: <input type="text" id="passwordIn" required> </div> 
+        <div class="row"> <input type="submit" value="Sign in"> </div>
+        <div id="signInMessage" style="text-color:red"></div>
+      </form>
     </div>
 
-    <div class="row" id="signup">
+    <div id="signup">
       <h3 style="text-align: center"> Sign up here </h3>
-      <div class="column">
-        <label>First name: </label> <br>
-        <label >Last name: </label> <br>
-        <label >Gender: </label> <br>
-        <label >City: </label> <br>
-        Country: <br>
-        Email: <br>
-        Password: <br>
-        PSW RPT:
-      </div>
-      <div class="column">
         <form onsubmit="return signUp()">
-          <input type="text" id="firstName" required> <br>
-          <input type="text" id="lastName" required > <br>
- 	        <select id="gender" required>
-	          <option value="male">Male</option>
-	          <option value="female">Female</option>
-	        </select> <br>
-          <input type="text" id="city" required> <br>
-          <input type="text" id="country" required> <br>
-          <input type="email" id="email" required> <br>
-          <input type="text" id="passwordUp" required> <br>
-          <input type="text" id="repeat" required> <br>
-          <input type="submit" value="Submit">
+        <div class="row"> First name: <input type="text" id="firstName" required> </div>
+        <div class="row">Last name: <input type="text" id="lastName" required > </div>
+        <div class="row">Gender:
+        <select id="gender" required>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+        </select> </div>
+        <div class="row">City: <input type="text" id="city" required></div>
+        <div class="row">Country: <input type="text" id="country" required> </div>
+        <div class="row">Email: <input type="email" id="email" required> </div>
+        <div class="row">Password: <input type="text" id="passwordUp" required></div>
+        <div class="row">PSW RPT:  <input type="text" id="repeat" required> </div> 
+        <div class="row"> <input type="submit" value="Submit"> </div>
+          
+          
+
+          
+          
+          
+          
+         
+         
         </form>
         <p id="signUpMessage"></p>
-      </div>
      </div>
     </script>
 
