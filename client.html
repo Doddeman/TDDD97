@@ -16,12 +16,13 @@
         <div class="row"> Email: <input type="email" id="userName" required> </div>
         <div class="row"> Password: <input type="text" id="passwordIn" required> </div> 
         <div class="row"> <input type="submit" value="Sign in"> </div>
-        <div id="signInMessage" style="text-color:red"></div>
+        <div class="row" id="signInMessage"></div>
       </form>
+
     </div>
 
     <div id="signup">
-      <h3 style="text-align: center"> Sign up here </h3>
+      <div class="header"> Sign in here </div>
         <form onsubmit="return signUp()">
         <div class="row"> First name: <input type="text" id="firstName" required> </div>
         <div class="row">Last name: <input type="text" id="lastName" required > </div>
@@ -36,17 +37,8 @@
         <div class="row">Password: <input type="text" id="passwordUp" required></div>
         <div class="row">PSW RPT:  <input type="text" id="repeat" required> </div> 
         <div class="row"> <input type="submit" value="Submit"> </div>
-          
-          
-
-          
-          
-          
-          
-         
-         
+        <div class="row" id="signUpMessage"></div>      
         </form>
-        <p id="signUpMessage"></p>
      </div>
     </script>
 
@@ -111,7 +103,6 @@
  </head>
 
  <body id="body">
-   <div id="clientviewer">
-   </div>
+   <div id="clientviewer"></div>
  </body>
 </html>

@@ -39,14 +39,13 @@ function signIn(){
  function signUp(){
 	var passwordUp = document.getElementById("passwordUp").value;
 	var repeat = document.getElementById("repeat").value;
-
+  
+  document.getElementById('signUpMessage').style.color = 'red';
 	if (passwordUp != repeat){
-		document.getElementById('signUpMessage').style.color = 'red';
-		document.getElementById("signUpMessage").innerHTML = "Password does not match";
+		document.getElementById("signUpMessage").innerHTML = "Passwords does not match";
 		return false;
 	}
 	else if(passwordUp.length < 6){
-		document.getElementById('signUpMessage').style.color = 'red';
 		document.getElementById("signUpMessage").innerHTML = "Password must be at least 6 letters";
 		return false;
 	}
