@@ -105,7 +105,14 @@
 	margin-top: 20px;
 }
 
-#wall{
+#homeWall{
+	border: 1px solid black;
+	height: 268px;
+	width: 100%;
+	overflow:auto;
+}
+
+#browseWall{
 	border: 1px solid black;
 	height: 268px;
 	width: 100%;
@@ -115,4 +122,19 @@
 .titles{
 	font-weight: bold;
 	font-size: large;
+}
+
+#displayUser{
+	display: none;
+	flex-direction: column;
+}
+
+#displayWall{
+	display: none;
+	flex-direction: column;
+}
+
+#displayText{
+	display: none;
+	flex-direction: column;
 }

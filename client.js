@@ -113,38 +113,70 @@ function getUserInfo(){
   document.getElementById('uEmail').innerHTML = userData.data.email;
 };
 
+function updateWall(){
+  var token = localStorage.getItem('token');
+  if(document.getElementById('homePanel').style.display == 'flex'){
+    var messages = serverstub.getUserMessagesByToken(token);
+    document.getElementById('homeWall').innerHTML = "";
+    for(var i = 0; i < messages.data.length; i++){
+      console.log(messages.data[i].content);  
+      document.getElementById('homeWall').innerHTML += messages.data[i].writer += ": ";
+      document.getElementById('homeWall').innerHTML += messages.data[i].content += "</br>";
+    }
+  }
+  else{
+    var email = document.getElementById('findEmail').value;
+    var messages = serverstub.getUserMessagesByEmail(token, email);
+    document.getElementById('browseWall').innerHTML = "";
+    for(var i = 0; i < messages.data.length; i++){
+      console.log(messages.data[i].content);  
+      document.getElementById('browseWall').innerHTML += messages.data[i].writer += ": ";
+      document.getElementById('browseWall').innerHTML += messages.data[i].content += "</br>";
+    }
+  }
+}
 function postToWall(){
   var token = localStorage.getItem('token');
-  var userData = serverstub.getUserDataByToken(token);
-  var email = userData.data.email;
-  var message = document.getElementById("textarea").value;
-  var response = serverstub.postMessage(token, message, email);
-  if(response.success){
-    console.console.log(response.message);
+  if(document.getElementById('homePanel').style.display == 'flex'){
+    var userData = serverstub.getUserDataByToken(token);
+    var email = userData.data.email;
+    var message = document.getElementById("homeTextArea").value;
   }
+  else{
+      var email = document.getElementById('findEmail').value;
+      var message = document.getElementById("browseTextArea").value;
+  }
+  var response = serverstub.postMessage(token, message, email);
+  console.log(response.message);
+  
 }
 
 /*FUNCTIONS FOR BROWSE PANEL*/
 function searchUser(){
   var token = localStorage.getItem('token');
-  var searchEmail = document.getElementById('findEmail').innerHTML;
-  var searchedUserData = serverstub.getUserDataByEmail(token,searchEmail);
+  var searchEmail = document.getElementById('findEmail').value;
+  var response = serverstub.getUserDataByEmail(token,searchEmail);
 
-  if(searchedUserData.success == false){
-    console.log("User does not exist!");
+  if(!response.success){
+    document.getElementById('searchMessage').style.color = 'red';
   }else {
-    document.getElementById('uName2').innerHTML = searchedUserData.data.firstname;
-    document.getElementById('uLastname2').innerHTML = searchedUserData.data.lastname;
-    document.getElementById('uGender2').innerHTML = searchedUserData.data.gender;
-    document.getElementById('uCity2').innerHTML = searchedUserData.data.city;
-    document.getElementById('uCountry2').innerHTML = searchedUserData.data.country;
-    document.getElementById('uEmail2').innerHTML = searchedUserData.data.email;
+    document.getElementById('uName2').innerHTML = response.data.firstname;
+    document.getElementById('uLastname2').innerHTML = response.data.familyname;
+    document.getElementById('uGender2').innerHTML = response.data.gender;
+    document.getElementById('uCity2').innerHTML = response.data.city;
+    document.getElementById('uCountry2').innerHTML = response.data.country;
+    document.getElementById('uEmail2').innerHTML = response.data.email;
+    document.getElementById('displayUser').style.display = 'flex';
+    document.getElementById('displayWall').style.display = 'flex';
+    document.getElementById('displayText').style.display = 'flex';
+    document.getElementById('searchMessage').style.color = 'green';
   }
+  document.getElementById('searchMessage').innerHTML = response.message;
 };
 
 /*FUNCTIONS FOR SHOWING A PANEL*/
 function showHomePanel(){
-  document.getElementById('homeTab').style.backgroundColor = 'mediumBlue';
+  document.getElementById('homeTab').style.backgroundColor = 'DeepPink';
   document.getElementById('browseTab').style.backgroundColor = 'darkmagenta';
   document.getElementById('accountTab').style.backgroundColor = 'darkmagenta';
 
@@ -156,7 +188,7 @@ function showHomePanel(){
 
 function showBrowsePanel(){
   document.getElementById('homeTab').style.backgroundColor = 'darkmagenta';
-  document.getElementById('browseTab').style.backgroundColor = 'mediumblue';
+  document.getElementById('browseTab').style.backgroundColor = 'DeepPink';
   document.getElementById('accountTab').style.backgroundColor = 'darkmagenta';
 
   document.getElementById('homePanel').style.display = 'none';
@@ -167,7 +199,7 @@ function showBrowsePanel(){
 function showAccountPanel(){
   document.getElementById('homeTab').style.backgroundColor = 'darkmagenta';
   document.getElementById('browseTab').style.backgroundColor = 'darkmagenta';
-  document.getElementById('accountTab').style.backgroundColor = 'mediumblue';
+  document.getElementById('accountTab').style.backgroundColor = 'DeepPink';
 
   document.getElementById('homePanel').style.display = 'none';
   document.getElementById('browsePanel').style.display = 'none';

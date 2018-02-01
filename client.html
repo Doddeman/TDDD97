@@ -22,7 +22,7 @@
     </div>
 
     <div id="signup">
-      <div class="header"> Sign in here </div>
+      <div class="header"> Sign up here </div>
         <form onsubmit="signUp(); return false;">
         <div class="row"> First name: <input type="text" id="firstName" required> </div>
         <div class="row">Last name: <input type="text" id="lastName" required > </div>
@@ -31,12 +31,14 @@
             <option value="male">Male</option>
             <option value="female">Female</option>
         </select> </div>
-        <div class="row">City: <input type="text" id="city" required></div>
+        <div class="row">
+        <label for="city"> City: </label><input type="text" id="city" required></div>
         <div class="row">Country: <input type="text" id="country" required> </div>
         <div class="row">Email: <input type="email" id="email" required> </div>
         <div class="row">Password: <input type="text" id="passwordUp" required></div>
         <div class="row">PSW RPT:  <input type="text" id="repeat" required> </div>
-        <div class="row"> <input type="submit" value="Submit"> </div>
+        <div class="row"> <input type="submit" value="Submit"> 
+        </div>
         <div class="row" id="signUpMessage"></div>
         </form>
      </div>
@@ -53,41 +55,61 @@
         <div class="panel" id="homePanel">
           <div class="float">
             <div class="titles">User information</div>
-            <p><b> Name: </b><span id="uName"></span></p>
-            <p><b>Last Name: </b><span id="uLastname"></span></p>
-            <p><b>Gender: </b><span id="uGender"></span></p>
-            <p><b>City: </b><span id="uCity"></span></p>
-            <p><b>Country: </b><span id="uCountry"></span></p>
-            <p><b>Email: </b><span id="uEmail"></span></p>
+            <div><b>Name: </b><span id="uName"></span></div>
+            <div><b>Last Name: </b><span id="uLastname"></span></div>
+            <div><b>Gender: </b><span id="uGender"></span></div>
+            <div><b>City: </b><span id="uCity"></span></div>
+            <div><b>Country: </b><span id="uCountry"></span></div>
+            <div><b>Email: </b><span id="uEmail"></span></div>
           </div>
           <div class="float">
             <div class="titles">User text wall</div>
-            <div id="wall">
-                hej
-            </div>
+            <div id="homeWall"> </div>
+            <button onclick="updateWall(); return false;">Update wall</button>
           </div>
+
           <div class="float">
             <div class="titles">Write on the wall</div>
             <form onsubmit="postToWall(); return false;">
-              <textarea id="textarea" rows="17" cols="25">How are you feeling right now...?</textarea>
+              <textarea id="homeTextArea" rows="17" cols="25">How are you feeling right now...?</textarea>
               <button id="wallbutton" type="submit">Post</button>
             </form>
           </div>
         </div>
         <div class="panel" id="browsePanel">
-          <form>
-            <p class="titles">Search after a user</p>
-            <input type="text" id="findEmail">
-            <button type="submit">Search</button>
-          </form>
-          <p id="searchMessage">This is the search message!</p>
-          <p class="titles">Found user profile</p>
-          <p>Name: <span id="uName2"></span></p>
-          <p>Last Name: <span id="uLastname2"></span></p>
-          <p>Gender: <span id="uGender2"></span></p>
-          <p>City: <span id="uCity2"></span></p>
-          <p>Country: <span id="uCountry2"></span></p>
-          <p>Email: <span id="uEmail2"></span></p>
+          <div class="float">
+            <form onsubmit="searchUser(); return false;">
+              <div class="titles">Search after a user</div>
+              <input type="email" id="findEmail">
+              <button type="submit">Search</button>
+            </form>
+            <div id="searchMessage"> </div>
+            <div id="displayUser">
+              <div class="titles">Found user</div>
+                <div><b>Name: </b><span id="uName2"></span></div>
+                <div><b>Last Name: </b><span id="uLastname2"></span></div>
+                <div><b>Gender: </b><span id="uGender2"></span></div>
+                <div><b>City: </b><span id="uCity2"></span></div>
+                <div><b>Country: </b><span id="uCountry2"></span></div>
+                <div><b>Email: </b><span id="uEmail2"></span></div>
+            </div>
+          </div>
+          <div id="displayWall">
+            <div class="float"> 
+              <div class="titles">User text wall</div>
+              <div id="browseWall"> </div>
+              <button onclick="updateWall(); return false;">Update wall</button>
+            </div>
+          </div>
+            <div id="displayText">
+              <div class="float">
+              <div class="titles">Write on the wall</div>
+              <form onsubmit="postToWall(); return false;">
+                <textarea id="browseTextArea" rows="17" cols="25">How are you feeling right now...?</textarea>
+                <button id="wallbutton" type="submit">Post</button>
+              </form>
+            </div>
+          </div>        
         </div>
         <div class="panel" id="accountPanel">
           <div>
