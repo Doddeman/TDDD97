@@ -6,7 +6,7 @@
 	width: 600px;
 	height: 400px;
 	margin-left: auto;
-  	margin-right: auto;
+  margin-right: auto;
 	margin-top: 100px;
 	/*border: 1px solid black;*/
 }
@@ -77,6 +77,10 @@
 	font-size: large;
 }
 
+#homePanel {
+	display: flex;
+	flex-direction: row;
+}
 
 .panels{
 	width: 910px;
@@ -91,8 +95,21 @@
 	height: 400px;
 	border: 1px solid black;
 	float: left;
-	display: none;
 	background-color: lavender;
+}
+
+.float{
+	height: 200px;
+	width: 300px;
+	text-align: center;
+	margin-top: 20px;
+}
+
+#wall{
+	border: 1px solid black;
+	height: 268px;
+	width: 100%;
+	overflow:auto;
 }
 
 .titles{

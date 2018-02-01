@@ -7,6 +7,7 @@ window.onload = function(){
     profileview  = document.getElementById('profileview').innerHTML;
 	if(localStorage.getItem('token') !== null && localStorage.getItem('token') !== undefined){
 		displayView(profileview);
+    showHomePanel();
 		console.log("profile, token: " + localStorage.getItem('token'));
 	}
 	else{
@@ -26,21 +27,26 @@ function signIn(){
 		return false;
 	}
 	else{
-    //fråga om serverstub.signin kallas flera gånger...
-		var token = serverstub.signIn(userName, passwordIn).data;
-		localStorage.setItem('token', token);
-		console.log("token: " + localStorage.getItem('token'));
-		//displayView(profileview);
-		console.log(serverstub.signIn(userName, passwordIn).success);
-		return true;
+		var response = serverstub.signIn(userName, passwordIn);
+    if(response.success){
+        localStorage.setItem('token', response.data);
+        console.log("token: " + localStorage.getItem('token'));
+        console.log(response.message);
+        displayView(profileview);
+        showHomePanel();
+    }
+    else{
+      document.getElementById('signInMessage').style.color = 'red';
+      document.getElementById("signInMessage").innerHTML = "Invalid login";
+    }
+		return response.success;
 	}
 };
 
  function signUp(){
 	var passwordUp = document.getElementById("passwordUp").value;
 	var repeat = document.getElementById("repeat").value;
-  
-  document.getElementById('signUpMessage').style.color = 'red';
+
 	if (passwordUp != repeat){
 		document.getElementById("signUpMessage").innerHTML = "Passwords does not match";
 		return false;
@@ -59,46 +65,40 @@ function signIn(){
 			'city': document.getElementById("city").value,
 			'country': document.getElementById("country").value,
 		}
-    console.log(serverstub.signUp(user).message);
-    //console.log(serverstub.signUp(user).message);
-		//console.log(serverstub.signUp(user));
-
-
-		return true;
-
+    var response = serverstub.signUp(user);
+    document.getElementById("signUpMessage").innerHTML = response.message;
+    return response.success;
 	}
 };
 
 /*FUNCTIONS FOR ACCOUNT PANEL*/
 function changePassword(){
-  
+
   var oldPassword = document.getElementById('oldPassword').value;
   var newPassword = document.getElementById('newPassword').value;
   var newPasswordRpt = document.getElementById('newPasswordRpt').value;
   var token = localStorage.getItem('token');
-
+  document.getElementById('changeMessage').style.color = 'red';
   if(newPassword.length < 6){
     document.getElementById('changeMessage').innerHTML = "New password too short";
-    //return false;
   }
   else if(newPassword != newPasswordRpt){
     document.getElementById('changeMessage').innerHTML = "New passwords does not match";
-    //return false;
   }
   else {
     var changedStatus = serverstub.changePassword(token, oldPassword, newPassword);
+    if(changedStatus.success){
+      document.getElementById('changeMessage').style.color = 'green';
+    }
     document.getElementById('changeMessage').innerHTML = changedStatus.message;
-    //return true;
   }
 };
 
 function signOut(){
-
   var token = localStorage.getItem('token');
-  alert(serverstub.signOut(token).message);
-  serverstub.signOut(token);
+  var response = serverstub.signOut(token);
   localStorage.removeItem('token');
-  //displayView(welcomeview);
+  displayView(welcomeview);
 };
 
 /*FUNCTIONS FOR HOME PANEL*/
@@ -106,12 +106,23 @@ function getUserInfo(){
   var token = localStorage.getItem('token');
   var userData = serverstub.getUserDataByToken(token);
   document.getElementById('uName').innerHTML = userData.data.firstname;
-  document.getElementById('uLastname').innerHTML = userData.data.lastname;
+  document.getElementById('uLastname').innerHTML = userData.data.familyname;
   document.getElementById('uGender').innerHTML = userData.data.gender;
   document.getElementById('uCity').innerHTML = userData.data.city;
   document.getElementById('uCountry').innerHTML = userData.data.country;
   document.getElementById('uEmail').innerHTML = userData.data.email;
 };
+
+function postToWall(){
+  var token = localStorage.getItem('token');
+  var userData = serverstub.getUserDataByToken(token);
+  var email = userData.data.email;
+  var message = document.getElementById("textarea").value;
+  var response = serverstub.postMessage(token, message, email);
+  if(response.success){
+    console.console.log(response.message);
+  }
+}
 
 /*FUNCTIONS FOR BROWSE PANEL*/
 function searchUser(){
@@ -137,9 +148,10 @@ function showHomePanel(){
   document.getElementById('browseTab').style.backgroundColor = 'darkmagenta';
   document.getElementById('accountTab').style.backgroundColor = 'darkmagenta';
 
-  document.getElementById('homePanel').style.display = 'block';
+  document.getElementById('homePanel').style.display = 'flex';
   document.getElementById('browsePanel').style.display = 'none';
   document.getElementById('accountPanel').style.display = 'none';
+  getUserInfo();
 };
 
 function showBrowsePanel(){
@@ -148,7 +160,7 @@ function showBrowsePanel(){
   document.getElementById('accountTab').style.backgroundColor = 'darkmagenta';
 
   document.getElementById('homePanel').style.display = 'none';
-  document.getElementById('browsePanel').style.display = 'block';
+  document.getElementById('browsePanel').style.display = 'flex';
   document.getElementById('accountPanel').style.display = 'none';
 };
 
@@ -159,5 +171,5 @@ function showAccountPanel(){
 
   document.getElementById('homePanel').style.display = 'none';
   document.getElementById('browsePanel').style.display = 'none';
-  document.getElementById('accountPanel').style.display = 'block';
+  document.getElementById('accountPanel').style.display = 'flex';
 };
