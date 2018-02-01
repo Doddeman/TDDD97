@@ -23,14 +23,14 @@
 	width: 250px;
 	height: 130px;
 	float: left;
-	/*background-color: green;*/
+	background-color: white;
 }
 
 #signup{
 	width: 250px;
 	height: 270px;
 	float: left;
-	/*background-color: blue;*/
+	background-color: white;
 }
 
 .header{
