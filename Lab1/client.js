@@ -187,7 +187,6 @@ function showHomePanel(){
   document.getElementById('homePanel').style.display = 'flex';
   document.getElementById('browsePanel').style.display = 'none';
   document.getElementById('accountPanel').style.display = 'none';
-
 };
 
 function showBrowsePanel(){
