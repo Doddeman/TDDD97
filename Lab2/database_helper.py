@@ -9,7 +9,7 @@ def get_db():
 		db = g._database = sqlite3.connect(DATABASE)
 	return db
 
-def add_user(user):
+def db_sign_up(user):
 	conn = sqlite3.connect(DATABASE)
 	cursor = conn.cursor()
 	try:  #if not email already taken
@@ -103,11 +103,11 @@ def db_find_user(token, user_email):
 		if user_email: #find other user
 			cursor.execute("SELECT token FROM users WHERE token = (?)", [token])
 			data = cursor.fetchone()
-			db_token = data[0]
+			db_token = data[0] #Will cast exception if token not found
 			if db_token == token:
 				cursor.execute("SELECT * FROM users WHERE email = (?)", [user_email])
 			else:
-				return jsonify({'success': True, 'message': "incorrect token"})
+				return jsonify({'success': False, 'message': "incorrect token"})
 		else: #find yourself
 			cursor.execute("SELECT * FROM users WHERE token = (?)", [token])
 
@@ -128,24 +128,31 @@ def db_find_user(token, user_email):
 		conn.rollback()
 		return jsonify({'success': False, 'message': str(error_message)})
 
-def db_get_messages(token):
+def db_get_messages(token, user_email):
 	conn = sqlite3.connect(DATABASE)
 	cursor = conn.cursor()
 	try: #see if token is correct
 		cursor.execute("SELECT email FROM users WHERE token = (?)", [token])
 		data = cursor.fetchone()
-		sender_email = data[0] #will cast exception if email don't exist
+		token_email = data[0] #will cast exception if email/token doesn't exist
+		if user_email:
+			cursor.execute("SELECT email FROM users WHERE email = (?)", [user_email])
+			data = cursor.fetchone()
+			target_email = data[0] #will cast exception if email/token doesn't exist
+		else:
+			target_email = token_email
 	except Exception as error_message:
 		conn.rollback()
 		return jsonify({'success': False, 'message': str(error_message)})
 	try:
-		cursor.execute("SELECT content FROM messages WHERE receiver = (?)", [sender_email])
+		cursor.execute("SELECT content FROM messages WHERE receiver = (?)", [target_email])
 		result_msg = ""
 		data = cursor.fetchall()
-
 		for row in data:
-			print row
-			result_msg += data[row][1] + '\n' ##list indices must be whattt
+			result_msg += row[0] + ' | '
+		result_msg = result_msg[:-3]
+		conn.commit()
+		conn.close()
 		return jsonify({'success': True, 'message': "Retrieved messages", "data": result_msg})
 	except Exception as error_message:
 		conn.rollback()

@@ -23,7 +23,7 @@ def sign_up():
 		user = {'email': user_email, 'firstname': first_name,\
 		'familyname': family_name, 'gender': gender, 'city': city,\
 		'country': country, 'password': password}
-		result = add_user(user)
+		result = db_sign_up(user)
 		return result
 	else:
 		return jsonify({'success': False, 'message': 'Password too short'})
@@ -33,14 +33,14 @@ def sign_in():
 	user_email = request.json['email']
 	password = request.json['password']
 
-	result = login(user_email, password)
+	result = db_sign_in(user_email, password)
 		#token = "hejhej"
 	return result
 
 @app.route('/signout', methods=['POST'])
 def sign_out():
 	token = request.json['token']
-	result = remove_user(token)
+	result = db_sign_out(token)
 	return result
 
 @app.route('/changepassword', methods=['POST'])
@@ -53,17 +53,22 @@ def change_password():
 
 @app.route('/findself/<token>', methods=['GET'])
 def get_user_data_by_token(token = None):
-	result = db_find_user(token, None)
+	result = db_get_user_data(token, None)
 	return result
 
 @app.route('/findother/<token>/<email>', methods=['GET'])
 def get_user_data_by_email(token = None, email = None):
-	result = db_find_user(token, email)
+	result = db_get_user_data(token, email)
 	return result
 
 @app.route('/messagestoken/<token>', methods=['GET'])
 def get_user_messages_by_token(token = None):
-	result = db_get_messages(token)
+	result = db_get_user_messages(token, None)
+	return result
+
+@app.route('/messagesemail/<token>/<email>', methods=['GET'])
+def get_user_messages_by_email(token = None, email = None):
+	result = db_get_user_messages(token, email)
 	return result
 
 @app.route('/post', methods=['POST'])
