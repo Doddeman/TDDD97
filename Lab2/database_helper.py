@@ -31,7 +31,7 @@ def db_sign_up(user):
 		conn.rollback()
 		return jsonify({'success': False, 'message': str(error_message)})
 
-def login(email, password):
+def db_sign_in(email, password):
 	conn = sqlite3.connect(DATABASE)
 	cursor = conn.cursor()
 	try:
@@ -59,7 +59,7 @@ def login(email, password):
 		conn.rollback()
 		return jsonify({'success': False, 'message': str(error_message)})
 
-def remove_user(token):
+def db_sign_out(token):
 	conn = sqlite3.connect(DATABASE)
 	cursor = conn.cursor()
 	#new_token = None
@@ -96,7 +96,7 @@ def db_change_password(token, old, new):
 		conn.rollback()
 		return jsonify({'success': False, 'message': str(error_message)})
 
-def db_find_user(token, user_email):
+def db_get_user_data(token, user_email):
 	conn = sqlite3.connect(DATABASE)
 	cursor = conn.cursor()
 	try:
@@ -128,7 +128,7 @@ def db_find_user(token, user_email):
 		conn.rollback()
 		return jsonify({'success': False, 'message': str(error_message)})
 
-def db_get_messages(token, user_email):
+def db_get_user_messages(token, user_email):
 	conn = sqlite3.connect(DATABASE)
 	cursor = conn.cursor()
 	try: #see if token is correct
