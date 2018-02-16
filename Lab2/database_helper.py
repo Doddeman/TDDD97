@@ -9,31 +9,43 @@ def get_db():
 		db = g._database = sqlite3.connect(DATABASE)
 	return db
 
-def db_sign_up(user):
-	conn = sqlite3.connect(DATABASE)
-	cursor = conn.cursor()
-	try:  #if not email already taken
-		token = None
-		mail = user['email']
-		firstname = user['firstname']
-		familyname = user['familyname']
-		gender = user['gender']
-		city = user['city']
-		country = user['country']
-		password = user['password']
+def close_db():
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
 
-		cursor.execute("INSERT INTO users VALUES (?,?,?,?,?,?,?,?)",\
-		[token, mail, firstname, familyname, gender, city, country, password])
-		conn.commit()
-		conn.close()
-		return jsonify({'success': True, 'message': 'User successfully created'})
-	except Exception as error_message:
-		conn.rollback()
-		return jsonify({'success': False, 'message': str(error_message)})
+def query_db(query, args=(), one=False):
+	cur = get_db().execute(query, args)
+	rv = cur.fetchall()
+	get_db().commit()
+	cur.close()
+	return (rv[0] if rv else None) if one else rv
+
+def validate_credentials(email, password):
+	res = query_db("SELECT email FROM users WHERE email = ? AND password = ?", [email, password], True)
+	if res:
+		return True
+	return False
+
+def create_user(user):
+	token = None
+	mail = user['email']
+	firstname = user['firstname']
+	familyname = user['familyname']
+	gender = user['gender']
+	city = user['city']
+	country = user['country']
+	password = user['password']
+
+
+	if len(query_db("SELECT email FROM users WHERE email = (?)", [mail])) > 0:
+		return "Email already taken"
+
+	return query_db("INSERT INTO users VALUES (?,?,?,?,?,?,?,?)",\
+	[token, mail, firstname, familyname, gender, city, country, password])
+
 
 def db_sign_in(email, password):
-	conn = sqlite3.connect(DATABASE)
-	cursor = conn.cursor()
 	try:
 		cursor.execute("SELECT password FROM users WHERE email = (?)", [email])
 		data = cursor.fetchone()
@@ -47,37 +59,26 @@ def db_sign_in(email, password):
 				sign = alphabet[rand]
 				token += sign
 			cursor.execute("UPDATE users SET token = ? WHERE email = ?", [token, email])
-			conn.commit()
-			conn.close()
 			return jsonify({'success': True, 'message': 'Logged in successfully',\
 			 'token': token})
 		else:
-			conn.commit()
-			conn.close()
+
 			return jsonify({'success': False, 'message': 'Wrong username or password'})
 	except Exception as error_message:
-		conn.rollback()
 		return jsonify({'success': False, 'message': str(error_message)})
 
 def db_sign_out(token):
-	conn = sqlite3.connect(DATABASE)
-	cursor = conn.cursor()
 	#new_token = None
 	try:
 		cursor.execute("DELETE FROM users WHERE token is ?", [token])
 		data = cursor.fetchone()
 		db_password = data[0]
-		conn.commit()
-		conn.close()
 		return jsonify({'success': True, 'message': 'Logged out successfully'})
 	except Exception as error_message:
 		#never fails, WHY??
-		conn.rollback()
 		return jsonify({'success': False, 'message': str(error_message)})
 
 def db_change_password(token, old, new):
-	conn = sqlite3.connect(DATABASE)
-	cursor = conn.cursor()
 	try:
 		cursor.execute("SELECT password FROM users WHERE token = (?)", [token])
 		data = cursor.fetchone()
@@ -85,20 +86,15 @@ def db_change_password(token, old, new):
 		if db_password == old:
 			try:
 				cursor.execute("UPDATE users SET password = ? WHERE token = ?", [new, token])
-				conn.commit()
-				conn.close()
 				return jsonify({'success': True, 'message': "successfully changed password"})
 			except Exception as error_message:
 				return jsonify({'success': False, 'message': str(error_message)})
 		else:
 			return jsonify({'success': False, 'message': "Old password incorrect"})
 	except Exception as error_message:
-		conn.rollback()
 		return jsonify({'success': False, 'message': str(error_message)})
 
 def db_get_user_data(token, user_email):
-	conn = sqlite3.connect(DATABASE)
-	cursor = conn.cursor()
 	try:
 		if user_email: #find other user
 			cursor.execute("SELECT token FROM users WHERE token = (?)", [token])
@@ -121,16 +117,11 @@ def db_get_user_data(token, user_email):
 		user = {'email': mail, 'firstname': firstname,\
 		'familyname': familyname, 'gender': gender,\
 		 'city': city, 'country': country}
-		conn.commit()
-		conn.close()
 		return jsonify({'success': True, 'message': "Found user info", "data": user})
 	except Exception as error_message:
-		conn.rollback()
 		return jsonify({'success': False, 'message': str(error_message)})
 
 def db_get_user_messages(token, user_email):
-	conn = sqlite3.connect(DATABASE)
-	cursor = conn.cursor()
 	try: #see if token is correct
 		cursor.execute("SELECT email FROM users WHERE token = (?)", [token])
 		data = cursor.fetchone()
@@ -142,7 +133,6 @@ def db_get_user_messages(token, user_email):
 		else:
 			target_email = token_email
 	except Exception as error_message:
-		conn.rollback()
 		return jsonify({'success': False, 'message': str(error_message)})
 	try:
 		cursor.execute("SELECT content FROM messages WHERE receiver = (?)", [target_email])
@@ -151,16 +141,11 @@ def db_get_user_messages(token, user_email):
 		for row in data:
 			result_msg += row[0] + ' | '
 		result_msg = result_msg[:-3]
-		conn.commit()
-		conn.close()
 		return jsonify({'success': True, 'message': "Retrieved messages", "data": result_msg})
 	except Exception as error_message:
-		conn.rollback()
 		return jsonify({'success': False, 'message': str(error_message)})
 
 def db_post_message(token, message, receiver_email):
-	conn = sqlite3.connect(DATABASE)
-	cursor = conn.cursor()
 	try: #see if token and receiver_email is correct
 		cursor.execute("SELECT email FROM users WHERE token = (?)", [token])
 		data = cursor.fetchone()
@@ -173,8 +158,6 @@ def db_post_message(token, message, receiver_email):
 	try: #post message
 		cursor.execute("INSERT INTO messages (sender, receiver, content) VALUES (?,?,?)",\
 		[sender_email, receiver_email, message])
-		conn.commit()
-		conn.close()
 		return jsonify({'success': True, 'message': "Message posted"})
 	except Exception as error_message:
 		return jsonify({'success': False, 'message': str(error_message)})

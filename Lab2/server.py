@@ -1,30 +1,53 @@
 from flask import Flask, request, jsonify
-from database_helper import *
+import database_helper as db
 app = Flask(__name__)
 
 def init_db():
 	with app.app_context():
-		db = get_db()
+		database = db.get_db()
 		with app.open_resource('schema.sql', mode='r') as f:
 			#if db is None:
-			db.cursor().executescript(f.read())
-		db.commit()
+			database.cursor().executescript(f.read())
+		database.commit()
+
+@app.teardown_appcontext
+def close_connection(exception):
+	db.close_db()
+
+
+def check_expected_json(exp, data):
+	missing = []
+	for key in exp:
+		try:
+			if not len(data[key]) > 0:
+				missing.append(key)
+		except:
+			missing.append(key)
+	return missing
+
 
 @app.route('/signup', methods=['POST'])
 def sign_up():
-	user_email = request.json['email']
-	first_name = request.json['firstname']
-	family_name = request.json['familyname']
-	gender = request.json['gender']
-	city = request.json['city']
-	country = request.json['country']
-	password = request.json['password']
-	if len(password) >= 6:
-		user = {'email': user_email, 'firstname': first_name,\
-		'familyname': family_name, 'gender': gender, 'city': city,\
-		'country': country, 'password': password}
-		result = db_sign_up(user)
-		return result
+	data = request.get_json()
+	expected = ["email", 'firstname', 'familyname', 'gender',\
+	'city', 'country', "password"]
+	missing = check_expected_json(expected, data)
+	if len(missing) > 0:
+		return jsonify({'success': False, 'message': 'Missing data',\
+		'Missing data': missing})
+
+	if len(data['password']) >= 6:
+		user = {'email': data['email'], 'firstname': data['firstname'],\
+		'familyname': data['familyname'], 'gender': data['gender'], \
+		'city': data['city'], 'country': data['country'],\
+		'password': data['password']}
+		msg = db.create_user(user)
+		if isinstance(msg, str):
+			return jsonify({'success': False, 'message': msg})
+		return jsonify({'success': True, 'message': "User successfully created"})
+		#fixa check for om email redan existerar
+		#else:
+		#	return jsonify({'success': False, 'message': "Could not create user"})
 	else:
 		return jsonify({'success': False, 'message': 'Password too short'})
 
@@ -53,6 +76,7 @@ def change_password():
 
 @app.route('/findself/<token>', methods=['GET'])
 def get_user_data_by_token(token = None):
+	token = request.headers.get("Authorization")
 	result = db_get_user_data(token, None)
 	return result
 
