@@ -1,3 +1,4 @@
+from random import *
 from flask import Flask, request, jsonify
 import database_helper as db
 app = Flask(__name__)
@@ -14,7 +15,6 @@ def init_db():
 def close_connection(exception):
 	db.close_db()
 
-
 def check_expected_json(exp, data):
 	missing = []
 	for key in exp:
@@ -24,7 +24,6 @@ def check_expected_json(exp, data):
 		except:
 			missing.append(key)
 	return missing
-
 
 @app.route('/signup', methods=['POST'])
 def sign_up():
@@ -53,55 +52,100 @@ def sign_up():
 
 @app.route('/signin', methods=['POST'])
 def sign_in():
-	user_email = request.json['email']
-	password = request.json['password']
-
-	result = db_sign_in(user_email, password)
-		#token = "hejhej"
-	return result
+	data = request.get_json()
+	expected = ["email", "password"]
+	missing = check_expected_json(expected, data)
+	if len(missing) > 0:
+		return jsonify({'success': False, 'message': 'Missing data',\
+		'Missing data': missing})
+	if db.validate_credentials(data['email'], data['password'], None):
+		alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+		token = ""
+		for i in range(0, 36):
+			rand = randint(0, len(alphabet)-1)
+			sign = alphabet[rand]
+			token += sign
+		db.add_user(data['email'], token)
+		return jsonify({'success': True, 'message': 'Logged in successfully',\
+		 'token': token})
+	else:
+		return jsonify({'success': False, 'message': 'Wrong username or password'})
 
 @app.route('/signout', methods=['POST'])
 def sign_out():
-	token = request.json['token']
-	result = db_sign_out(token)
-	return result
+	data = request.get_json()
+	expected = ["token"]
+	missing = check_expected_json(expected, data)
+	if len(missing) > 0:
+		return jsonify({'success': False, 'message': 'Missing data',\
+		'Missing data': missing})
+	if db.remove_user(data['token']):
+		return jsonify({'success': True, 'message': 'Logged out successfully'})
+	else:
+		return jsonify({'success': False, 'message': 'Could not log out'})
 
 @app.route('/changepassword', methods=['POST'])
 def change_password():
-	token = request.json['token']
-	old_password = request.json['old']
-	new_password = request.json['new']
-	result = db_change_password(token, old_password, new_password)
-	return result
+	data = request.get_json()
+	expected = ["token", "old", "new"]
+	missing = check_expected_json(expected, data)
+	if len(missing) > 0:
+		return jsonify({'success': False, 'message': 'Missing data',\
+		'Missing data': missing})
+	email = db.find_user(data['token'], None)["email"]
+	if db.validate_credentials(email, data['old'], None):
+		db.change_password(email, data['new'])
+		return jsonify({'success': True, 'message': "Successfully changed password"})
+	else:
+		return jsonify({'success': False, 'message': "Old password incorrect"})
 
-@app.route('/findself/<token>', methods=['GET'])
+@app.route('/findself', methods=['GET'])
 def get_user_data_by_token(token = None):
 	token = request.headers.get("Authorization")
-	result = db_get_user_data(token, None)
-	return result
+	user = db.find_user(token, None)
+	if user:
+		return jsonify({'success': True, 'message': "Found user info", "data": user})
+	else:
+		return jsonify({'success': False, 'message': "No such user"})
 
-@app.route('/findother/<token>/<email>', methods=['GET'])
+@app.route('/findother/<email>', methods=['GET'])
 def get_user_data_by_email(token = None, email = None):
-	result = db_get_user_data(token, email)
-	return result
+	token = request.headers.get("Authorization")
+	if db.validate_credentials(None, None, token):
+		user = db.find_user(token, email)
+		if isinstance(user, dict):
+			return jsonify({'success': True, 'message': "Found user info", "data": user})
+		else:
+			return jsonify({'success': False, 'message': "No such user"})
+	else:
+		return jsonify({'success': False, 'message': "Incorrect token"})
 
-@app.route('/messagestoken/<token>', methods=['GET'])
+@app.route('/messagestoken', methods=['GET'])
 def get_user_messages_by_token(token = None):
-	result = db_get_user_messages(token, None)
-	return result
+	token = request.headers.get("Authorization")
+	if db.validate_credentials(None, None, token):
+		messages = db.get_messages(token, None)
+		return jsonify({'success': True, 'message': "Retrieved messages",\
+		'data' : messages})
+	else:
+		return jsonify({'success': False, 'message': "Incorrect token"})
 
 @app.route('/messagesemail/<token>/<email>', methods=['GET'])
 def get_user_messages_by_email(token = None, email = None):
-	result = db_get_user_messages(token, email)
+	result = db.get_messages(token, email)
 	return result
 
 @app.route('/post', methods=['POST'])
 def post_message():
-	token  = request.json['token']
-	message = request.json['message']
-	receiver_email = request.json['mail']
-	result = db_post_message(token, message, receiver_email)
-	return result
+	data = request.get_json()
+	expected = ["token", "message", "receiver"]
+	missing = check_expected_json(expected, data)
+	if len(missing) > 0:
+		return jsonify({'success': False, 'message': 'Missing data',\
+		'Missing data': missing})
+	if db.validate_credentials(None, None, token):
+		db.add_message(data['token'], data['message'], data['receiver'])
+		return jsonify({'success': True, 'message': "Message posted"})
 
 if __name__== "__main__":
 	init_db()

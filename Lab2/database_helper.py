@@ -1,6 +1,5 @@
 import sqlite3
 from flask import g, jsonify
-from random import *
 DATABASE = 'database.db'
 
 def get_db():
@@ -21,138 +20,90 @@ def query_db(query, args=(), one=False):
 	cur.close()
 	return (rv[0] if rv else None) if one else rv
 
-def validate_credentials(email, password):
-	res = query_db("SELECT email FROM users WHERE email = ? AND password = ?", [email, password], True)
+def validate_credentials(email, password, token):
+	if token:
+		res = query_db("SELECT email FROM online_users\
+		WHERE token = ?", [token], True)
+	else:
+		res = query_db("SELECT email FROM users\
+		WHERE email = ? AND password = ?", [email, password], True)
 	if res:
 		return True
 	return False
 
 def create_user(user):
-	token = None
-	mail = user['email']
-	firstname = user['firstname']
-	familyname = user['familyname']
-	gender = user['gender']
-	city = user['city']
-	country = user['country']
-	password = user['password']
-
-
-	if len(query_db("SELECT email FROM users WHERE email = (?)", [mail])) > 0:
+	if len(query_db("SELECT email FROM users WHERE email = (?)", [user['email']])) > 0:
 		return "Email already taken"
 
-	return query_db("INSERT INTO users VALUES (?,?,?,?,?,?,?,?)",\
-	[token, mail, firstname, familyname, gender, city, country, password])
+	return query_db("INSERT INTO users VALUES (?,?,?,?,?,?,?)",\
+	[user['email'], user['firstname'], user['familyname'],\
+	user['gender'], user['city'], user['country'], user['password']])
 
 
-def db_sign_in(email, password):
+def add_user(email, token):
+	query_db("INSERT INTO online_users VALUES (?,?)", [email, token])
+
+def remove_user(token):
 	try:
-		cursor.execute("SELECT password FROM users WHERE email = (?)", [email])
-		data = cursor.fetchone()
-		db_password = data[0]
-		if len(db_password) >= 6 and db_password == password:
-			#Create token
-			alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-			token = ""
-			for i in range(0, 36):
-				rand = randint(0, len(alphabet)-1)
-				sign = alphabet[rand]
-				token += sign
-			cursor.execute("UPDATE users SET token = ? WHERE email = ?", [token, email])
-			return jsonify({'success': True, 'message': 'Logged in successfully',\
-			 'token': token})
-		else:
-
-			return jsonify({'success': False, 'message': 'Wrong username or password'})
-	except Exception as error_message:
-		return jsonify({'success': False, 'message': str(error_message)})
-
-def db_sign_out(token):
-	#new_token = None
-	try:
-		cursor.execute("DELETE FROM users WHERE token is ?", [token])
-		data = cursor.fetchone()
-		db_password = data[0]
-		return jsonify({'success': True, 'message': 'Logged out successfully'})
-	except Exception as error_message:
+		query_db("DELETE FROM online_users WHERE token is ?", [token])
+		return True
+	except:
 		#never fails, WHY??
-		return jsonify({'success': False, 'message': str(error_message)})
+		return False
 
-def db_change_password(token, old, new):
-	try:
-		cursor.execute("SELECT password FROM users WHERE token = (?)", [token])
-		data = cursor.fetchone()
-		db_password = data[0]
-		if db_password == old:
-			try:
-				cursor.execute("UPDATE users SET password = ? WHERE token = ?", [new, token])
-				return jsonify({'success': True, 'message': "successfully changed password"})
-			except Exception as error_message:
-				return jsonify({'success': False, 'message': str(error_message)})
+def change_password(email, new):
+	query_db("UPDATE users SET password = ? WHERE email = ?", [new, email])
+
+def find_user(token, user_email):
+	if user_email: #find other user
+		db_email = query_db("SELECT email FROM users WHERE email = (?)", [user_email])
+		if db_email:
+			target_email = db_email[0][0]
 		else:
-			return jsonify({'success': False, 'message': "Old password incorrect"})
-	except Exception as error_message:
-		return jsonify({'success': False, 'message': str(error_message)})
+			return ""
+	else: #find yourself
+		own_email = query_db("SELECT email FROM online_users WHERE token = (?)", [token])
+		target_email = own_email[0][0]
 
-def db_get_user_data(token, user_email):
-	try:
-		if user_email: #find other user
-			cursor.execute("SELECT token FROM users WHERE token = (?)", [token])
-			data = cursor.fetchone()
-			db_token = data[0] #Will cast exception if token not found
-			if db_token == token:
-				cursor.execute("SELECT * FROM users WHERE email = (?)", [user_email])
-			else:
-				return jsonify({'success': False, 'message': "incorrect token"})
-		else: #find yourself
-			cursor.execute("SELECT * FROM users WHERE token = (?)", [token])
+	data = query_db("SELECT email, firstname, familyname, gender,\
+	city, country FROM users WHERE email = (?)", [target_email])
 
-		result = cursor.fetchone()
-		mail = result[1]
-		firstname = result[2]
-		familyname = result[3]
-		gender = result[4]
-		city = result[5]
-		country = result[6]
-		user = {'email': mail, 'firstname': firstname,\
-		'familyname': familyname, 'gender': gender,\
-		 'city': city, 'country': country}
-		return jsonify({'success': True, 'message': "Found user info", "data": user})
-	except Exception as error_message:
-		return jsonify({'success': False, 'message': str(error_message)})
+	user = {'email': data[0][0], 'firstname': data[0][1],\
+	'familyname': data[0][2], 'gender': data[0][3],\
+	'city': data[0][4], 'country': data[0][5]}
+	return user
 
-def db_get_user_messages(token, user_email):
-	try: #see if token is correct
-		cursor.execute("SELECT email FROM users WHERE token = (?)", [token])
+
+def get_messages(token, user_email):
+	if user_email:
+		cursor.execute("SELECT email FROM users WHERE email = (?)", [user_email])
 		data = cursor.fetchone()
-		token_email = data[0] #will cast exception if email/token doesn't exist
-		if user_email:
-			cursor.execute("SELECT email FROM users WHERE email = (?)", [user_email])
-			data = cursor.fetchone()
-			target_email = data[0] #will cast exception if email/token doesn't exist
-		else:
-			target_email = token_email
-	except Exception as error_message:
-		return jsonify({'success': False, 'message': str(error_message)})
+		target_email = data[0]
+	else:
+		target_email = find_user(data['token'], None)["email"] #get our email with token
 	try:
-		cursor.execute("SELECT content FROM messages WHERE receiver = (?)", [target_email])
-		result_msg = ""
-		data = cursor.fetchall()
-		for row in data:
-			result_msg += row[0] + ' | '
+		all_messages = query_db("SELECT sender, content FROM messages WHERE\
+		receiver = (?)", [target_email])
+		print "all: "
+		print all_messages
+		result_msg = []
+		for row in all_messages:
+			result_msg.append(row[0])
 		result_msg = result_msg[:-3]
-		return jsonify({'success': True, 'message': "Retrieved messages", "data": result_msg})
+		return result_msg
 	except Exception as error_message:
 		return jsonify({'success': False, 'message': str(error_message)})
 
-def db_post_message(token, message, receiver_email):
+def add_message(token, message, receiver):
 	try: #see if token and receiver_email is correct
-		cursor.execute("SELECT email FROM users WHERE token = (?)", [token])
-		data = cursor.fetchone()
-		sender_email = data[0] #will cast exception if email don't exist
-		cursor.execute("SELECT email FROM users WHERE email = (?)", [receiver_email])
-		data = cursor.fetchone()
-		db_receiver_email = data[0] #will cast exception if email don't exist
+		sender = query_db("SELECT email FROM online_users WHERE token = (?)", [token])[0][0]
+
+		db_receiver = query_db("SELECT email FROM users WHERE email = (?)", [receiver])
+		if db_receiver:
+			query_db("INSERT INTO messages (sender, receiver, content) VALUES (?,?,?)",\
+			[sender, receiver, message])
+		else:
+
 	except Exception as error_message:
 		return jsonify({'success': False, 'message': str(error_message)})
 	try: #post message
