@@ -1,5 +1,5 @@
 import sqlite3
-from flask import g, jsonify
+from flask import g
 DATABASE = 'database.db'
 
 def get_db():
@@ -76,39 +76,33 @@ def find_user(token, user_email):
 
 def get_messages(token, user_email):
 	if user_email:
-		cursor.execute("SELECT email FROM users WHERE email = (?)", [user_email])
-		data = cursor.fetchone()
-		target_email = data[0]
+		db_email = query_db("SELECT email FROM users WHERE email = (?)", [user_email])
+		if db_email:
+			target_email = db_email[0][0]
+		else:
+			return False
 	else:
-		target_email = find_user(data['token'], None)["email"] #get our email with token
-	try:
-		all_messages = query_db("SELECT sender, content FROM messages WHERE\
-		receiver = (?)", [target_email])
-		print "all: "
-		print all_messages
-		result_msg = []
-		for row in all_messages:
-			result_msg.append(row[0])
-		result_msg = result_msg[:-3]
-		return result_msg
-	except Exception as error_message:
-		return jsonify({'success': False, 'message': str(error_message)})
+		target_email = find_user(token, None)["email"] #get our own email with token
+
+	all_messages = query_db("SELECT sender, content FROM messages WHERE\
+	receiver = (?)", [target_email])
+	result_msg = []
+	for row in all_messages:
+		sender = "Sender: "
+		sender += row[0]
+		message = "Message: "
+		message += row[1]
+		result_msg.append(sender)
+		result_msg.append(message)
+	return result_msg
+
 
 def add_message(token, message, receiver):
-	try: #see if token and receiver_email is correct
-		sender = query_db("SELECT email FROM online_users WHERE token = (?)", [token])[0][0]
-
-		db_receiver = query_db("SELECT email FROM users WHERE email = (?)", [receiver])
-		if db_receiver:
-			query_db("INSERT INTO messages (sender, receiver, content) VALUES (?,?,?)",\
-			[sender, receiver, message])
-		else:
-
-	except Exception as error_message:
-		return jsonify({'success': False, 'message': str(error_message)})
-	try: #post message
-		cursor.execute("INSERT INTO messages (sender, receiver, content) VALUES (?,?,?)",\
-		[sender_email, receiver_email, message])
-		return jsonify({'success': True, 'message': "Message posted"})
-	except Exception as error_message:
-		return jsonify({'success': False, 'message': str(error_message)})
+	sender = query_db("SELECT email FROM online_users WHERE token = (?)", [token])[0][0]
+	db_receiver = query_db("SELECT email FROM users WHERE email = (?)", [receiver])
+	if db_receiver:
+		query_db("INSERT INTO messages (sender, receiver, content) VALUES (?,?,?)",\
+		[sender, receiver, message])
+		return True
+	else:
+		return False

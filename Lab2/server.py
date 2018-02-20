@@ -125,15 +125,23 @@ def get_user_messages_by_token(token = None):
 	token = request.headers.get("Authorization")
 	if db.validate_credentials(None, None, token):
 		messages = db.get_messages(token, None)
-		return jsonify({'success': True, 'message': "Retrieved messages",\
+		return jsonify({'success': True, 'message': "Retrieved user's messages",\
 		'data' : messages})
 	else:
 		return jsonify({'success': False, 'message': "Incorrect token"})
 
-@app.route('/messagesemail/<token>/<email>', methods=['GET'])
+@app.route('/messagesemail/<email>', methods=['GET'])
 def get_user_messages_by_email(token = None, email = None):
-	result = db.get_messages(token, email)
-	return result
+	token = request.headers.get("Authorization")
+	if db.validate_credentials(None, None, token):
+		messages = db.get_messages(token, email)
+		if isinstance(messages, list):
+			return jsonify({'success': True, 'message': "Retrieved other user's messages",\
+		'data' : messages})
+		else:
+			return jsonify({'success': False, 'message': "No such user"})
+	else:
+		return jsonify({'success': False, 'message': "Incorrect token"})
 
 @app.route('/post', methods=['POST'])
 def post_message():
@@ -143,9 +151,14 @@ def post_message():
 	if len(missing) > 0:
 		return jsonify({'success': False, 'message': 'Missing data',\
 		'Missing data': missing})
-	if db.validate_credentials(None, None, token):
-		db.add_message(data['token'], data['message'], data['receiver'])
-		return jsonify({'success': True, 'message': "Message posted"})
+	if db.validate_credentials(None, None, data['token']):
+		success = db.add_message(data['token'], data['message'], data['receiver'])
+		if success:
+			return jsonify({'success': True, 'message': "Message posted"})
+		else:
+			return jsonify({'success': False, 'message': "Receiver not found"})
+	else:
+		return jsonify({'success': False, 'message': "Incorrect token"})
 
 if __name__== "__main__":
 	init_db()
