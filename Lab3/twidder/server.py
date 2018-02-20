@@ -1,7 +1,11 @@
 from random import *
 from flask import Flask, request, jsonify
 import database_helper as db
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='')
+
+@app.route('/')
+def root():
+	return app.send_static_file(filename='client.html')
 
 def init_db():
 	with app.app_context():
@@ -37,9 +41,9 @@ def sign_up():
 
 	if len(data['password']) >= 6:
 		user = {'email': data['email'], 'firstname': data['firstname'],\
-		'familyname': data['familyname'], 'gender': data['gender'], \
+		'familyname': data['familyname'], 'gender': data['gender'],\
 		'city': data['city'], 'country': data['country'],\
-		'password': data['password']}
+		'password': data['password']};
 		msg = db.create_user(user)
 		if isinstance(msg, str):
 			return jsonify({'success': False, 'message': msg})
@@ -162,4 +166,4 @@ def post_message():
 
 if __name__== "__main__":
 	init_db()
-	app.run(port = 8000, debug = True)
+	app.run(debug = True)

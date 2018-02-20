@@ -5,7 +5,7 @@ window.onload = function(){
 	//localStorage.removeItem('token');
     welcomeview  = document.getElementById('welcomeview').innerHTML;
     profileview  = document.getElementById('profileview').innerHTML;
-	if(localStorage.getItem('token') !== null && localStorage.getItem('token') !== undefined){
+	if(localStorage.getItem('token')){
 		displayView(profileview);
     showHomePanel();
 		console.log("profile, token: " + localStorage.getItem('token'));
@@ -21,26 +21,41 @@ window.onload = function(){
 function signIn(){
 	var userName = document.getElementById("userName").value;
 	var passwordIn = document.getElementById("passwordIn").value;
+  var login = {
+    'email': userName,
+    'password': passwordIn,
+  }
 	if(passwordIn.length < 6){
 		document.getElementById('signInMessage').style.color = 'red';
 		document.getElementById("signInMessage").innerHTML = "Password must be at least 6 letters";
 		return false;
 	}
 	else{
-		var response = serverstub.signIn(userName, passwordIn);
-    if(response.success){
-        localStorage.setItem('token', response.data);
-        console.log("token: " + localStorage.getItem('token'));
-        console.log(response.message);
-        displayView(profileview);
-        showHomePanel();
-        getUserInfo();
-    }
-    else{
-      document.getElementById('signInMessage').style.color = 'red';
-      document.getElementById("signInMessage").innerHTML = "Invalid login";
-    }
-		return response.success;
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("POST", "/signin", true);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+         var parsedJson = JSON.parse(xhttp.responseText)
+         var message = parsedJson.message;
+         var success = parsedJson.success;
+         if(success){
+           localStorage.setItem('token', parsedJson.token);
+           console.log("token: " + localStorage.getItem('token'));
+           console.log(parsedJson.message);
+           displayView(profileview);
+           showHomePanel();
+           getUserInfo();
+         }
+         else{
+           document.getElementById('signInMessage').style.color = 'red';
+           document.getElementById("signInMessage").innerHTML = "Invalid login";
+         }
+         return success;
+       }
+    };
+    xhttp.send(JSON.stringify(login));
+
 	}
 };
 
@@ -66,10 +81,27 @@ function signIn(){
 			'city': document.getElementById("city").value,
 			'country': document.getElementById("country").value,
 		}
-    var response = serverstub.signUp(user);
-    document.getElementById("signUpMessage").innerHTML = response.message;
-    return response.success;
-	}
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("POST", "/signup", true);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+         var parsedJson = JSON.parse(xhttp.responseText)
+         var message = parsedJson.message;
+         console.log("message: " + message)
+         var success = parsedJson.success;
+         if (success){
+            document.getElementById('signUpMessage').style.color = 'green';
+         }
+         else{
+           document.getElementById('signUpMessage').style.color = 'red';
+         }
+         document.getElementById("signUpMessage").innerHTML = message;
+         return success;
+       }
+      }
+    };
+    xhttp.send(JSON.stringify(user));
 };
 
 /*FUNCTIONS FOR ACCOUNT PANEL*/
@@ -97,9 +129,22 @@ function changePassword(){
 
 function signOut(){
   var token = localStorage.getItem('token');
-  var response = serverstub.signOut(token);
-  localStorage.removeItem('token');
-  displayView(welcomeview);
+
+  var xhttp = new XMLHttpRequest();
+  xhttp.open("POST", "/signout", true);
+  xhttp.setRequestHeader("Content-Type", "application/json");
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+       var parsedJson = JSON.parse(xhttp.responseText)
+       var message = parsedJson.message;
+       var success = parsedJson.success;
+       if (success){
+         localStorage.removeItem('token');
+         displayView(welcomeview);
+       }
+    }
+  };
+  xhttp.send(JSON.stringify({"token": token}));
 };
 
 /*FUNCTIONS FOR HOME PANEL*/

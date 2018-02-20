@@ -55,7 +55,7 @@ def sign_in():
 	data = request.get_json()
 	expected = ["email", "password"]
 	missing = check_expected_json(expected, data)
-	if len(missing) > 0:
+	if missing:
 		return jsonify({'success': False, 'message': 'Missing data',\
 		'Missing data': missing})
 	if db.validate_credentials(data['email'], data['password'], None):
