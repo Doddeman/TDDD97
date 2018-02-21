@@ -88,10 +88,8 @@ def get_messages(token, user_email):
 	receiver = (?)", [target_email])
 	result_msg = []
 	for row in all_messages:
-		sender = "Sender: "
-		sender += row[0]
-		message = "Message: "
-		message += row[1]
+		sender = row[0]
+		message = row[1]
 		result_msg.append(sender)
 		result_msg.append(message)
 	return result_msg

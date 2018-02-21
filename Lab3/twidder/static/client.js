@@ -34,28 +34,25 @@ function signIn(){
     var xhttp = new XMLHttpRequest();
     xhttp.open("POST", "/signin", true);
     xhttp.setRequestHeader("Content-Type", "application/json");
-    xhttp.onreadystatechange = function() {
-      if (this.readyState == 4 && this.status == 200) {
-         var parsedJson = JSON.parse(xhttp.responseText)
-         var message = parsedJson.message;
-         var success = parsedJson.success;
-         if(success){
-           localStorage.setItem('token', parsedJson.token);
-           console.log("token: " + localStorage.getItem('token'));
-           console.log(parsedJson.message);
-           displayView(profileview);
-           showHomePanel();
-           getUserInfo();
-         }
-         else{
-           document.getElementById('signInMessage').style.color = 'red';
-           document.getElementById("signInMessage").innerHTML = "Invalid login";
-         }
-         return success;
+    xhttp.onload = function() {
+       var parsedJson = JSON.parse(xhttp.responseText)
+       var message = parsedJson.message;
+       var success = parsedJson.success;
+       if(success){
+         localStorage.setItem('token', parsedJson.token);
+         console.log("token: " + localStorage.getItem('token'));
+         console.log(parsedJson.message);
+         displayView(profileview);
+         showHomePanel();
+         getUserInfo();
        }
+       else{
+         document.getElementById('signInMessage').style.color = 'red';
+         document.getElementById("signInMessage").innerHTML = "Invalid login";
+       }
+       return success;
     };
     xhttp.send(JSON.stringify(login));
-
 	}
 };
 
@@ -84,23 +81,21 @@ function signIn(){
     var xhttp = new XMLHttpRequest();
     xhttp.open("POST", "/signup", true);
     xhttp.setRequestHeader("Content-Type", "application/json");
-    xhttp.onreadystatechange = function() {
-      if (this.readyState == 4 && this.status == 200) {
-         var parsedJson = JSON.parse(xhttp.responseText)
-         var message = parsedJson.message;
-         console.log("message: " + message)
-         var success = parsedJson.success;
-         if (success){
-            document.getElementById('signUpMessage').style.color = 'green';
-         }
-         else{
-           document.getElementById('signUpMessage').style.color = 'red';
-         }
-         document.getElementById("signUpMessage").innerHTML = message;
-         return success;
+    xhttp.onload = function() {
+       var parsedJson = JSON.parse(xhttp.responseText)
+       var message = parsedJson.message;
+       console.log("message: " + message)
+       var success = parsedJson.success;
+       if (success){
+          document.getElementById('signUpMessage').style.color = 'green';
        }
-      }
-    };
+       else{
+         document.getElementById('signUpMessage').style.color = 'red';
+       }
+       document.getElementById("signUpMessage").innerHTML = message;
+       return success;
+    }
+  };
     xhttp.send(JSON.stringify(user));
 };
 
@@ -119,11 +114,19 @@ function changePassword(){
     document.getElementById('changeMessage').innerHTML = "New passwords does not match";
   }
   else {
-    var changedStatus = serverstub.changePassword(token, oldPassword, newPassword);
-    if(changedStatus.success){
-      document.getElementById('changeMessage').style.color = 'green';
-    }
-    document.getElementById('changeMessage').innerHTML = changedStatus.message;
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("POST", "/changepassword", true);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.onload = function() {
+       var parsedJson = JSON.parse(xhttp.responseText)
+       var message = parsedJson.message;
+       var success = parsedJson.success;
+       if(success){
+         document.getElementById('changeMessage').style.color = 'green';
+       }
+       document.getElementById('changeMessage').innerHTML = message;
+    };
+    xhttp.send(JSON.stringify({"token": token, "old": oldPassword, "new": newPassword}));
   }
 };
 
@@ -133,16 +136,14 @@ function signOut(){
   var xhttp = new XMLHttpRequest();
   xhttp.open("POST", "/signout", true);
   xhttp.setRequestHeader("Content-Type", "application/json");
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-       var parsedJson = JSON.parse(xhttp.responseText)
-       var message = parsedJson.message;
-       var success = parsedJson.success;
-       if (success){
-         localStorage.removeItem('token');
-         displayView(welcomeview);
-       }
-    }
+  xhttp.onload = function() {
+     var parsedJson = JSON.parse(xhttp.responseText)
+     var message = parsedJson.message;
+     var success = parsedJson.success;
+     if (success){
+       localStorage.removeItem('token');
+       displayView(welcomeview);
+     }
   };
   xhttp.send(JSON.stringify({"token": token}));
 };
@@ -150,77 +151,137 @@ function signOut(){
 /*FUNCTIONS FOR HOME PANEL*/
 function getUserInfo(){
   var token = localStorage.getItem('token');
-  var userData = serverstub.getUserDataByToken(token);
-  document.getElementById('uName').innerHTML = userData.data.firstname;
-  document.getElementById('uLastname').innerHTML = userData.data.familyname;
-  document.getElementById('uGender').innerHTML = userData.data.gender;
-  document.getElementById('uCity').innerHTML = userData.data.city;
-  document.getElementById('uCountry').innerHTML = userData.data.country;
-  document.getElementById('uEmail').innerHTML = userData.data.email;
+  var xhttp = new XMLHttpRequest();
+  xhttp.open("GET", "/findself", true);
+  xhttp.setRequestHeader("Authorization", token);
+  xhttp.onload = function() {
+     var parsedJson = JSON.parse(xhttp.responseText)
+     var message = parsedJson.message;
+     console.log("message: " + message);
+     var success = parsedJson.success;
+     if (success){
+       var data = parsedJson.data;
+       document.getElementById('uName').innerHTML = data.firstname;
+       document.getElementById('uLastname').innerHTML = data.familyname;
+       document.getElementById('uGender').innerHTML = data.gender;
+       document.getElementById('uCity').innerHTML = data.city;
+       document.getElementById('uCountry').innerHTML = data.country;
+       document.getElementById('uEmail').innerHTML = data.email;
+     }
+  };
+  xhttp.send();
+
 };
 
 function updateWall(){
   var token = localStorage.getItem('token');
+  var home;
   if(document.getElementById('homePanel').style.display == 'flex'){
-    var messages = serverstub.getUserMessagesByToken(token);
-    document.getElementById('homeWall').innerHTML = "";
-    for(var i = 0; i < messages.data.length; i++){
-      console.log(messages.data[i].content);
-      document.getElementById('homeWall').innerHTML += messages.data[i].writer += ": ";
-      document.getElementById('homeWall').innerHTML += messages.data[i].content += "</br>";
-    }
+    home = true;
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("GET", "/messagestoken", true);
   }
   else{
     var email = document.getElementById('uEmail2').innerHTML;
-    var messages = serverstub.getUserMessagesByEmail(token, email);
-    document.getElementById('browseWall').innerHTML = "";
-    for(var i = 0; i < messages.data.length; i++){
-      console.log(messages.data[i].content);
-      document.getElementById('browseWall').innerHTML += messages.data[i].writer += ": ";
-      document.getElementById('browseWall').innerHTML += messages.data[i].content += "</br>";
-    }
+    home = false;
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("GET", "/messagesemail/" + email, true);
   }
+    xhttp.setRequestHeader("Authorization", token);
+    xhttp.onload = function() {
+       var parsedJson = JSON.parse(xhttp.responseText)
+       var message = parsedJson.message;
+       console.log("message: " + message);
+       var success = parsedJson.success;
+       if (success){
+         var data = parsedJson.data;
+         if (home){
+           document.getElementById('homeWall').innerHTML = "";
+           for(var i = 0; i < data.length; i++){
+             if(i % 2 == 0){
+               document.getElementById('homeWall').innerHTML += data[i] += ": ";
+             }
+             else{
+               document.getElementById('homeWall').innerHTML += data[i] += "</br>";
+             }
+           }
+         }
+         else{
+           document.getElementById('browseWall').innerHTML = "";
+           for(var i = 0; i < data.length; i++){
+             if(i % 2 == 0){
+               document.getElementById('browseWall').innerHTML += data[i] += ": ";
+             }
+             else{
+               document.getElementById('browseWall').innerHTML += data[i] += "</br>";
+             }
+           }
+         }
+
+       }
+    };
+    xhttp.send();
 }
+
 function postToWall(){
   var token = localStorage.getItem('token');
   if(document.getElementById('homePanel').style.display == 'flex'){
-    var userData = serverstub.getUserDataByToken(token);
-    var email = userData.data.email;
+    var email =  document.getElementById('uEmail').innerHTML;
     var message = document.getElementById("homeTextArea").value;
   }
   else{
-      var email = document.getElementById('uEmail2').value;
-      var message = document.getElementById("browseTextArea").value;
+    var email = document.getElementById('uEmail2').innerHTML;
+    var message = document.getElementById("browseTextArea").value;
   }
-  var response = serverstub.postMessage(token, message, email);
-  updateWall();
-  console.log(response.message);
-
-}
+  var xhttp = new XMLHttpRequest();
+  xhttp.open("POST", "/post", true);
+  xhttp.setRequestHeader("Content-Type", "application/json");
+  xhttp.onload = function() {
+     var parsedJson = JSON.parse(xhttp.responseText)
+     var message = parsedJson.message;
+     console.log("message: " + message);
+     var success = parsedJson.success;
+     if (success){
+       updateWall();
+     }
+  };
+  xhttp.send(JSON.stringify({"token": token, "message": message, "receiver": email}));
+};
 
 
 /*FUNCTIONS FOR BROWSE PANEL*/
 function searchUser(){
   var token = localStorage.getItem('token');
   var searchEmail = document.getElementById('findEmail').value;
-  var response = serverstub.getUserDataByEmail(token,searchEmail);
 
-  if(!response.success){
-    document.getElementById('searchMessage').style.color = 'red';
-  }else {
-    document.getElementById('uName2').innerHTML = response.data.firstname;
-    document.getElementById('uLastname2').innerHTML = response.data.familyname;
-    document.getElementById('uGender2').innerHTML = response.data.gender;
-    document.getElementById('uCity2').innerHTML = response.data.city;
-    document.getElementById('uCountry2').innerHTML = response.data.country;
-    document.getElementById('uEmail2').innerHTML = response.data.email;
-    document.getElementById('displayUser').style.display = 'flex';
-    document.getElementById('displayWall').style.display = 'flex';
-    document.getElementById('displayText').style.display = 'flex';
-    document.getElementById('searchMessage').style.color = 'green';
-  }
-  document.getElementById('searchMessage').innerHTML = response.message;
-    setTimeout(function(){document.getElementById('searchMessage').innerHTML = "";}, 3000);
+  var xhttp = new XMLHttpRequest();
+  xhttp.open("GET", "/findother/" + searchEmail, true);
+  xhttp.setRequestHeader("Authorization", token);
+  xhttp.onload = function() {
+     var parsedJson = JSON.parse(xhttp.responseText)
+     var message = parsedJson.message;
+     console.log("message: " + message);
+     var success = parsedJson.success;
+     if (success){
+       var data = parsedJson.data;
+       document.getElementById('uName2').innerHTML = data.firstname;
+       document.getElementById('uLastname2').innerHTML = data.familyname;
+       document.getElementById('uGender2').innerHTML = data.gender;
+       document.getElementById('uCity2').innerHTML = data.city;
+       document.getElementById('uCountry2').innerHTML = data.country;
+       document.getElementById('uEmail2').innerHTML = data.email;
+       document.getElementById('displayUser').style.display = 'flex';
+       document.getElementById('displayWall').style.display = 'flex';
+       document.getElementById('displayText').style.display = 'flex';
+       document.getElementById('searchMessage').style.color = 'green';
+     }
+     else{
+       document.getElementById('searchMessage').style.color = 'red'
+     }
+     document.getElementById('searchMessage').innerHTML = message;
+     setTimeout(function(){document.getElementById('searchMessage').innerHTML = "";}, 3000);
+  };
+  xhttp.send();
 };
 
 /*FUNCTIONS FOR SHOWING A PANEL*/

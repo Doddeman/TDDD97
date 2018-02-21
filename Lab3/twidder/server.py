@@ -1,5 +1,9 @@
-from random import *
+from random import randint
 from flask import Flask, request, jsonify
+from flask_sockets import Sockets
+from gevent.wsgi import WSGIServer
+from geventwebsocket.handler import WebSocketHandler
+from geventwebsocket import WebSocketError
 import database_helper as db
 app = Flask(__name__, static_url_path='')
 
@@ -18,6 +22,8 @@ def init_db():
 @app.teardown_appcontext
 def close_connection(exception):
 	db.close_db()
+
+@app.route('/socket')
 
 def check_expected_json(exp, data):
 	missing = []
@@ -62,6 +68,9 @@ def sign_in():
 	if len(missing) > 0:
 		return jsonify({'success': False, 'message': 'Missing data',\
 		'Missing data': missing})
+	#if email in login_users:
+	#logout with token
+
 	if db.validate_credentials(data['email'], data['password'], None):
 		alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 		token = ""
@@ -166,4 +175,6 @@ def post_message():
 
 if __name__== "__main__":
 	init_db()
-	app.run(debug = True)
+	#app.run(debug = True)
+	http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)
+	http_server.serve_forever()
