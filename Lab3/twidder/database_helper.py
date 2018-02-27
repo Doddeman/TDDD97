@@ -39,6 +39,12 @@ def create_user(user):
 	[user['email'], user['firstname'], user['familyname'],\
 	user['gender'], user['city'], user['country'], user['password']])
 
+def logout_other(email):
+	token = query_db("SELECT token FROM online_users WHERE email = (?)", [email], True)
+	if token:
+		query_db("DELETE FROM online_users WHERE email is ?", [email])
+		return ". Deleted old login"
+		#return token
 
 def add_user(email, token):
 	query_db("INSERT INTO online_users VALUES (?,?)", [email, token])

@@ -1,11 +1,15 @@
 from random import randint
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, json
 from flask_sockets import Sockets
 from gevent.wsgi import WSGIServer
 from geventwebsocket.handler import WebSocketHandler
 from geventwebsocket import WebSocketError
 import database_helper as db
+
 app = Flask(__name__, static_url_path='')
+socket = Sockets(app)
+
+socket_connections = {}
 
 @app.route('/')
 def root():
@@ -23,7 +27,16 @@ def init_db():
 def close_connection(exception):
 	db.close_db()
 
-@app.route('/socket')
+@app.route('/echo')
+def echo_socket():
+    if request.environ.get('wsgi.websocket'):
+		ws = request.environ['wsgi.websocket']
+		while True:
+			email = ws.receive()
+			socket_connections[email] = ws
+			#for k, v in socket_connections.items():
+			#	print(k,v)
+	#return
 
 def check_expected_json(exp, data):
 	missing = []
@@ -68,10 +81,17 @@ def sign_in():
 	if len(missing) > 0:
 		return jsonify({'success': False, 'message': 'Missing data',\
 		'Missing data': missing})
-	#if email in login_users:
-	#logout with token
-
 	if db.validate_credentials(data['email'], data['password'], None):
+		#Logout from other browser
+		logout_msg = db.logout_other(data['email'])
+		if data['email'] in socket_connections:
+			ws = socket_connections[data['email']]
+			ws.send("signout")
+			#ws.send(json.dumps({"data": "sign_out"}))
+			ws.close() #creates error
+			del socket_connections[data['email']]
+
+		#create token
 		alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 		token = ""
 		for i in range(0, 36):
@@ -79,8 +99,11 @@ def sign_in():
 			sign = alphabet[rand]
 			token += sign
 		db.add_user(data['email'], token)
-		return jsonify({'success': True, 'message': 'Logged in successfully',\
-		 'token': token})
+
+		success_msg = 'Logged in successfully'
+		if isinstance(logout_msg, str):
+			success_msg += logout_msg
+		return jsonify({'success': True, 'message': success_msg, 'token': token})
 	else:
 		return jsonify({'success': False, 'message': 'Wrong username or password'})
 
@@ -174,7 +197,10 @@ def post_message():
 		return jsonify({'success': False, 'message': "Incorrect token"})
 
 if __name__== "__main__":
+	print "starting server"
 	init_db()
-	#app.run(debug = True)
+	app.debug = True
+	#app.run(port = 8000, debug = True)
 	http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)
+
 	http_server.serve_forever()
