@@ -1,5 +1,6 @@
 import sqlite3
 from flask import g
+import md5
 DATABASE = 'database.db'
 
 def get_db():
@@ -25,15 +26,47 @@ def validate_credentials(email, password, token):
 		res = query_db("SELECT email FROM online_users\
 		WHERE token = ?", [token], True)
 	else:
+		#password = hash(password)
+		password = md5.new(password).hexdigest()
 		res = query_db("SELECT email FROM users\
 		WHERE email = ? AND password = ?", [email, password], True)
 	if res:
 		return True
 	return False
 
+def get_hash_token(key, hashToken, saltList):
+	token = query_db("SELECT token FROM online_users WHERE email = (?)", [key], True)[0]
+	#print "got token: "
+	#print token
+	salt = ""
+	for arg in saltList:
+		salt += arg
+
+	print "salt: "
+	print salt
+
+	hashSalt = token + salt
+
+	print "hashSalt: "
+	print hashSalt
+
+	newHashToken = md5.new(hashSalt).hexdigest()
+	#print "calulated token: "
+	#print newHashToken
+	#newHashToken = hash(hashSalt)
+	if hashToken == newHashToken:
+		print "MATCH"
+		return True
+	else:
+		print "NOT MATCH"
+		return False
+
 def create_user(user):
 	if len(query_db("SELECT email FROM users WHERE email = (?)", [user['email']])) > 0:
 		return "Email already taken"
+
+	#user['password'] = hash(user['password'])
+	user['password'] = md5.new(user['password']).hexdigest()
 
 	return query_db("INSERT INTO users VALUES (?,?,?,?,?,?,?)",\
 	[user['email'], user['firstname'], user['familyname'],\
@@ -49,16 +82,18 @@ def logout_other(email):
 def add_user(email, token):
 	query_db("INSERT INTO online_users VALUES (?,?)", [email, token])
 
-def remove_user(token):
+def remove_user(email):
 	try:
-		query_db("DELETE FROM online_users WHERE token is ?", [token])
+		query_db("DELETE FROM online_users WHERE email is ?", [email])
 		return True
 	except:
 		#never fails, WHY??
 		return False
 
-def change_password(email, new):
-	query_db("UPDATE users SET password = ? WHERE email = ?", [new, email])
+def change_password(email, newPassword):
+	#newPassword = hash(newPassword)
+	newPassword = md5.new(newPassword).hexdigest()
+	query_db("UPDATE users SET password = ? WHERE email = ?", [newPassword, email])
 
 def find_user(token, user_email):
 	if user_email: #find other user

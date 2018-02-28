@@ -9,9 +9,12 @@ window.onload = function(){
 		displayView(profileview);
     showHomePanel();
 		console.log("profile, token: " + localStorage.getItem('token'));
+    getUserInfo();
 	}
 	else{
   	displayView(welcomeview);
+    //var hashToken = md5("hej");
+    //console.log("hej: " + hashToken)
     //displayView(profileview);
   	console.log("welcome, token: " + localStorage.getItem('token'));
 	}
@@ -71,6 +74,7 @@ function signIn(){
        return success;
      }
     };
+
     xhttp.send(JSON.stringify(login));
 	}
 };
@@ -125,6 +129,7 @@ function changePassword(){
   var newPassword = document.getElementById('newPassword').value;
   var newPasswordRpt = document.getElementById('newPasswordRpt').value;
   var token = localStorage.getItem('token');
+  var publicKey = document.getElementById('uEmail').innerHTML;
   document.getElementById('changeMessage').style.color = 'red';
   if(newPassword.length < 6){
     document.getElementById('changeMessage').innerHTML = "New password too short";
@@ -145,7 +150,14 @@ function changePassword(){
        }
        document.getElementById('changeMessage').innerHTML = message;
     };
-    xhttp.send(JSON.stringify({"token": token, "old": oldPassword, "new": newPassword}));
+    //hash salt
+    var hashSalt = token + oldPassword + newPassword;
+    //console.log("hashSalt: " + hashSalt);
+    var hashToken = md5(hashSalt);
+    //console.log("hashT: " + hashToken);
+    //console.log("logpublkey: " + publicKey);
+
+    xhttp.send(JSON.stringify({"hashToken": hashToken,"old": oldPassword, "new": newPassword, "key": publicKey}));
   }
 };
 
@@ -161,19 +173,16 @@ function signOut(){
      var message = parsedJson.message;
      var success = parsedJson.success;
      if (success){
-
-
-       // When the connection is open, send some data to the server
-      /* ws.onclose = function () {
-         console.log("close ws");
-         ws.send('Ping'); // Send the message 'Ping' to the server
-       }*/
-
        localStorage.removeItem('token');
        displayView(welcomeview);
      }
   };
-  xhttp.send(JSON.stringify({"token": token}));
+  var salt = "POST/signout";
+  var hashSalt = token + salt;
+  var hashToken = md5(hashSalt);
+  var publicKey = document.getElementById('uEmail').innerHTML;
+
+  xhttp.send(JSON.stringify({"hashToken": hashToken, "key": publicKey, "salt": salt}));
 };
 
 /*FUNCTIONS FOR HOME PANEL*/
@@ -198,7 +207,6 @@ function getUserInfo(){
      }
   };
   xhttp.send();
-
 };
 
 function updateWall(){
@@ -225,13 +233,23 @@ function updateWall(){
          var data = parsedJson.data;
          if (home){
            document.getElementById('homeWall').innerHTML = "";
+           var counter = 0;
            for(var i = 0; i < data.length; i++){
+
+             var newDiv = document.createElement("div");
+             document.getElementById('newDiv').innerHTML = "";
+             var newId = "msg" + counter;
+
+             document.getElementById('homeWall').appendChild(div);
+             newDiv.id = newId;
+
              if(i % 2 == 0){
-               document.getElementById('homeWall').innerHTML += data[i] += ": ";
+               document.getElementById('newId').innerHTML += data[i] += ": ";
              }
              else{
-               document.getElementById('homeWall').innerHTML += data[i] += "</br>";
+               document.getElementById('newId').innerHTML += data[i] += "</br>";
              }
+             counter++;
            }
          }
          else{

@@ -27,16 +27,14 @@ def init_db():
 def close_connection(exception):
 	db.close_db()
 
-@app.route('/echo')
-def echo_socket():
-    if request.environ.get('wsgi.websocket'):
-		ws = request.environ['wsgi.websocket']
-		while True:
-			email = ws.receive()
-			socket_connections[email] = ws
-			#for k, v in socket_connections.items():
-			#	print(k,v)
-	#return
+@socket.route('/echo')
+def echo_socket(ws):
+	while True:
+		email = ws.receive()
+		socket_connections[email] = ws
+		#for k, v in socket_connections.items():
+		#	print(k,v)
+#return
 
 def check_expected_json(exp, data):
 	missing = []
@@ -110,12 +108,18 @@ def sign_in():
 @app.route('/signout', methods=['POST'])
 def sign_out():
 	data = request.get_json()
-	expected = ["token"]
+	expected = ["hashToken", "key", "salt"]
 	missing = check_expected_json(expected, data)
 	if len(missing) > 0:
 		return jsonify({'success': False, 'message': 'Missing data',\
 		'Missing data': missing})
-	if db.remove_user(data['token']):
+
+	#check md5-token
+	args = [data['salt']]
+	if not db.get_hash_token(data['key'], data['hashToken'], args):
+		return jsonify({'success': False, 'message': "Incorrect token"})
+
+	if db.remove_user(data['key']):
 		return jsonify({'success': True, 'message': 'Logged out successfully'})
 	else:
 		return jsonify({'success': False, 'message': 'Could not log out'})
@@ -123,14 +127,21 @@ def sign_out():
 @app.route('/changepassword', methods=['POST'])
 def change_password():
 	data = request.get_json()
-	expected = ["token", "old", "new"]
+	#revershash token
+	expected = ["hashToken", "old", "new", "key"]
 	missing = check_expected_json(expected, data)
 	if len(missing) > 0:
 		return jsonify({'success': False, 'message': 'Missing data',\
 		'Missing data': missing})
-	email = db.find_user(data['token'], None)["email"]
-	if db.validate_credentials(email, data['old'], None):
-		db.change_password(email, data['new'])
+
+	#check md5-token
+	args = [data['old'], data['new']]
+	if not db.get_hash_token(data['key'], data['hashToken'], args):
+		return jsonify({'success': False, 'message': "Incorrect token"})
+
+	#email = db.find_user(data['token'], None)["email"] #Still needed?
+	if db.validate_credentials(data['key'], data['old'], None):
+		db.change_password(data['key'], data['new'])
 		return jsonify({'success': True, 'message': "Successfully changed password"})
 	else:
 		return jsonify({'success': False, 'message': "Old password incorrect"})
