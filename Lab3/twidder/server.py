@@ -88,7 +88,7 @@ def sign_in():
 			ws = socket_connections[data['email']]
 			ws.send("signout")
 			#ws.send(json.dumps({"data": "sign_out"}))
-			ws.close() #creates error
+			#ws.close() #creates error
 			del socket_connections[data['email']]
 
 		#create token

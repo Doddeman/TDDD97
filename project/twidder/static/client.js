@@ -129,7 +129,6 @@ function changePassword(){
   var newPassword = document.getElementById('newPassword').value;
   var newPasswordRpt = document.getElementById('newPasswordRpt').value;
   var token = localStorage.getItem('token');
-  var publicKey = document.getElementById('uEmail').innerHTML;
   document.getElementById('changeMessage').style.color = 'red';
   if(newPassword.length < 6){
     document.getElementById('changeMessage').innerHTML = "New password too short";
@@ -156,6 +155,7 @@ function changePassword(){
     var hashToken = md5(hashSalt);
     //console.log("hashT: " + hashToken);
     //console.log("logpublkey: " + publicKey);
+    var publicKey = document.getElementById('uEmail').innerHTML;
 
     xhttp.send(JSON.stringify({"hashToken": hashToken,"old": oldPassword, "new": newPassword, "key": publicKey}));
   }
@@ -233,23 +233,23 @@ function updateWall(){
          var data = parsedJson.data;
          if (home){
            document.getElementById('homeWall').innerHTML = "";
-           var counter = 0;
+           //var counter = 0;
            for(var i = 0; i < data.length; i++){
 
-             var newDiv = document.createElement("div");
+             /*var newDiv = document.createElement("div");
              document.getElementById('newDiv').innerHTML = "";
              var newId = "msg" + counter;
 
              document.getElementById('homeWall').appendChild(div);
-             newDiv.id = newId;
+             newDiv.id = newId;*/
 
              if(i % 2 == 0){
-               document.getElementById('newId').innerHTML += data[i] += ": ";
+               document.getElementById('homeWall').innerHTML += data[i] += ": ";
              }
              else{
-               document.getElementById('newId').innerHTML += data[i] += "</br>";
+               document.getElementById('homeWall').innerHTML += data[i] += "</br>";
              }
-             counter++;
+             //counter++;
            }
          }
          else{
@@ -263,7 +263,6 @@ function updateWall(){
              }
            }
          }
-
        }
     };
     xhttp.send();
@@ -291,7 +290,12 @@ function postToWall(){
        updateWall();
      }
   };
-  xhttp.send(JSON.stringify({"token": token, "message": message, "receiver": email}));
+  var salt = message + email;
+  var hashSalt = token + salt;
+  var hashToken = md5(hashSalt);
+  var publicKey = document.getElementById('uEmail').innerHTML;
+
+  xhttp.send(JSON.stringify({"hashToken": hashToken, "message": message, "receiver": email, "key": publicKey}));
 };
 
 

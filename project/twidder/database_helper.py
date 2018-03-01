@@ -136,8 +136,8 @@ def get_messages(token, user_email):
 	return result_msg
 
 
-def add_message(token, message, receiver):
-	sender = query_db("SELECT email FROM online_users WHERE token = (?)", [token])[0][0]
+def add_message(sender, message, receiver):
+	#sender = query_db("SELECT email FROM online_users WHERE token = (?)", [token])[0][0]
 	db_receiver = query_db("SELECT email FROM users WHERE email = (?)", [receiver])
 	if db_receiver:
 		query_db("INSERT INTO messages (sender, receiver, content) VALUES (?,?,?)",\

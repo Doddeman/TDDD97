@@ -193,25 +193,31 @@ def get_user_messages_by_email(token = None, email = None):
 @app.route('/post', methods=['POST'])
 def post_message():
 	data = request.get_json()
-	expected = ["token", "message", "receiver"]
+	expected = ["hashToken", "message", "receiver", "key"]
 	missing = check_expected_json(expected, data)
 	if len(missing) > 0:
 		return jsonify({'success': False, 'message': 'Missing data',\
 		'Missing data': missing})
-	if db.validate_credentials(None, None, data['token']):
-		success = db.add_message(data['token'], data['message'], data['receiver'])
-		if success:
-			return jsonify({'success': True, 'message': "Message posted"})
-		else:
-			return jsonify({'success': False, 'message': "Receiver not found"})
-	else:
+
+	#check md5-token
+	args = [data['message'], data['receiver']]
+	if not db.get_hash_token(data['key'], data['hashToken'], args):
 		return jsonify({'success': False, 'message': "Incorrect token"})
+
+
+	success = db.add_message(data['key'], data['message'], data['receiver'])
+	if success:
+		print "success"
+		return jsonify({'success': True, 'message': "Message posted"})
+	else:
+		print "receiver not found"
+		return jsonify({'success': False, 'message': "Receiver not found"})
 
 if __name__== "__main__":
 	print "starting server"
 	init_db()
 	app.debug = True
 	#app.run(port = 8000, debug = True)
-	http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)
+	http_server = WSGIServer(('', 8000), app, handler_class=WebSocketHandler)
 
 	http_server.serve_forever()
