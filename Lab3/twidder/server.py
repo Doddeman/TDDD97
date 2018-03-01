@@ -27,15 +27,17 @@ def init_db():
 def close_connection(exception):
 	db.close_db()
 
-@app.route('/echo')
-def echo_socket():
-    if request.environ.get('wsgi.websocket'):
-		ws = request.environ['wsgi.websocket']
-		while True:
-			email = ws.receive()
+#send  token, validate real person
+
+@socket.route('/echo')
+def echo_socket(ws):
+	while True:
+		token = ws.receive()
+		if db.validate_credentials(None, None, token):
+			email = db.find_user(token, None)["email"]
 			socket_connections[email] = ws
-			#for k, v in socket_connections.items():
-			#	print(k,v)
+		#for k, v in socket_connections.items():
+		#	print(k,v)
 	#return
 
 def check_expected_json(exp, data):
@@ -87,8 +89,6 @@ def sign_in():
 		if data['email'] in socket_connections:
 			ws = socket_connections[data['email']]
 			ws.send("signout")
-			#ws.send(json.dumps({"data": "sign_out"}))
-			#ws.close() #creates error
 			del socket_connections[data['email']]
 
 		#create token
@@ -200,7 +200,5 @@ if __name__== "__main__":
 	print "starting server"
 	init_db()
 	app.debug = True
-	#app.run(port = 8000, debug = True)
 	http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)
-
 	http_server.serve_forever()

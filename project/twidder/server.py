@@ -218,6 +218,6 @@ if __name__== "__main__":
 	init_db()
 	app.debug = True
 	#app.run(port = 8000, debug = True)
-	http_server = WSGIServer(('', 8000), app, handler_class=WebSocketHandler)
+	http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)
 
 	http_server.serve_forever()

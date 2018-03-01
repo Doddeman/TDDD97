@@ -65,14 +65,14 @@
           </div>
           <div class="float">
             <div class="titles">User text wall</div>
-            <div id="homeWall"> </div>
+            <div id="homeWall" ondrop="drop(event)" ondragover="allowDrop(event)"> </div>
             <button onclick="updateWall(); return false;">Update wall</button>
           </div>
 
           <div class="float">
             <div class="titles">Write on the wall</div>
             <form onsubmit="postToWall(); return false;">
-              <textarea id="homeTextArea" rows="17" cols="25">How are you feeling right now...?</textarea>
+              <textarea id="homeTextArea" rows="17" cols="25" draggable="true" ondragstart="drag(event)">How are you feeling right now...?</textarea>
               <button id="homeWallButton" type="submit">Post</button>
             </form>
           </div>

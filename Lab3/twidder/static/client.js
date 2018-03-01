@@ -9,6 +9,8 @@ window.onload = function(){
 		displayView(profileview);
     showHomePanel();
 		console.log("profile, token: " + localStorage.getItem('token'));
+    getUserInfo()
+    socket();
 	}
 	else{
   	displayView(welcomeview);
@@ -17,6 +19,26 @@ window.onload = function(){
 	}
 };
 
+function socket(){
+  ws = new WebSocket('ws://localhost:5000/echo');
+
+   ws.onopen = function () {
+     var token = localStorage.getItem('token');
+     console.log("Socket open: " + token)
+     ws.send(token);
+   };
+
+   //logout previous login
+  ws.onmessage = function (message) {
+    //console.log("msgdata: " + message.data)
+    if (message.data == "signout"){
+      console.log("Logged out, logged in somewhere else");
+      localStorage.removeItem("token");
+      displayView(welcomeview);
+    }
+  };
+
+}
 
 function signIn(){
 	var userName = document.getElementById("userName").value;
@@ -40,22 +62,6 @@ function signIn(){
        var message = parsedJson.message;
        var success = parsedJson.success;
        if(success){
-         ws = new WebSocket('ws://localhost:5000/echo');
-
-          ws.onopen = function () {
-            console.log("Socket open: " + userName)
-            ws.send(userName);
-          };
-
-          //force logout previous login
-         ws.onmessage = function (message) {
-           //console.log("msgdata: " + message.data)
-           if (message.data == "signout"){
-             console.log("Logged out, logged in somewhere else");
-             localStorage.removeItem("token");
-             displayView(welcomeview);
-           }
-         };
 
          localStorage.setItem('token', parsedJson.token);
          console.log("token: " + localStorage.getItem('token'));
@@ -63,6 +69,8 @@ function signIn(){
          displayView(profileview);
          showHomePanel();
          getUserInfo();
+
+         socket();
        }
        else{
          document.getElementById('signInMessage').style.color = 'red';
@@ -161,13 +169,6 @@ function signOut(){
      var message = parsedJson.message;
      var success = parsedJson.success;
      if (success){
-
-
-       // When the connection is open, send some data to the server
-      /* ws.onclose = function () {
-         console.log("close ws");
-         ws.send('Ping'); // Send the message 'Ping' to the server
-       }*/
 
        localStorage.removeItem('token');
        displayView(welcomeview);

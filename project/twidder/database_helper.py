@@ -50,10 +50,9 @@ def get_hash_token(key, hashToken, saltList):
 	print "hashSalt: "
 	print hashSalt
 
+
+	#flask_bcrypt ???
 	newHashToken = md5.new(hashSalt).hexdigest()
-	#print "calulated token: "
-	#print newHashToken
-	#newHashToken = hash(hashSalt)
 	if hashToken == newHashToken:
 		print "MATCH"
 		return True

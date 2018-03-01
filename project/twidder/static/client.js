@@ -290,6 +290,9 @@ function postToWall(){
        updateWall();
      }
   };
+
+  //flask_bcrypt ???
+
   var salt = message + email;
   var hashSalt = token + salt;
   var hashToken = md5(hashSalt);
@@ -297,6 +300,24 @@ function postToWall(){
 
   xhttp.send(JSON.stringify({"hashToken": hashToken, "message": message, "receiver": email, "key": publicKey}));
 };
+
+function allowDrop(ev) {
+    ev.preventDefault();
+}
+
+function drag(ev) {
+    ev.dataTransfer.setData("text", ev.target.id);
+}
+
+function drop(ev) {
+    ev.preventDefault();
+    var data = ev.dataTransfer.getData("text");
+
+    var nodeCopy = document.getElementById(data).cloneNode(true);
+    nodeCopy.id = "copyId";
+    ev.target.appendChild(nodeCopy);
+    postToWall();
+}
 
 
 /*FUNCTIONS FOR BROWSE PANEL*/
