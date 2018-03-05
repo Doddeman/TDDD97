@@ -31,9 +31,10 @@ def close_connection(exception):
 def echo_socket(ws):
 	while True:
 		token = ws.receive()
-		if db.validate_credentials(None, None, token):
-			email = db.find_user(token, None)["email"]
-			socket_connections[email] = ws
+		if token:
+			if db.validate_credentials(None, None, token):
+				email = db.find_user(token, None)["email"]
+				socket_connections[email] = ws
 		#for k, v in socket_connections.items():
 		#	print(k,v)
 #return
@@ -130,6 +131,7 @@ def sign_out():
 		return jsonify({'success': False, 'message': "Incorrect token"})
 
 	if db.remove_user(data['key']):
+		del socket_connections[data['key']]
 		for email in socket_connections:
 			ws = socket_connections[email]
 			ws.send("Update online users")

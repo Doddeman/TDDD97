@@ -231,22 +231,42 @@ function twidderData(){
        var data = parsedJson.data;
        var ctx = document.getElementById('myChart').getContext('2d');
        var chart = new Chart(ctx, {
+
         // The type of chart we want to create
          type: 'bar',
         // The data for our dataset
         data: {
             labels: ["Male users", "Female users", "Online users"],
             datasets: [{
-                label: "Live from Twidder",
-                backgroundColor: 'rgb(255, 99, 132)',
-                borderColor: 'rgb(255, 99, 132)',
+              label: "Live statistics from Twidder",
+                backgroundColor: 'rgb(0, 51, 204)',
                 data: [data.males, data.females, data.online],
             }]
         },
 
       // Configuration options go here
           options: {
-            responsive: true,
+            scales: {
+              yAxes: [{
+                ticks: {
+                  beginAtZero: true,
+                  steps: 5,
+                  stepValue: 1,
+                  max: 5,
+                  fontColor: 'black'
+                }
+              }],
+              xAxes: [{
+                ticks: {
+                  fontColor: 'black'
+                }
+              }]
+            },
+            legend: {
+              labels: {
+                fontColor : 'black'
+              }
+            }
           }
         });
       }
