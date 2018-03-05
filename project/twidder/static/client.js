@@ -10,6 +10,7 @@ window.onload = function(){
     showHomePanel();
 		console.log("profile, token: " + localStorage.getItem('token'));
     getUserInfo();
+    updateWall();
     twidderData();
     socket();
 	}
@@ -72,6 +73,7 @@ function signIn(){
          displayView(profileview);
          showHomePanel();
          getUserInfo();
+         updateWall();
          twidderData();
          socket();
        }
@@ -413,6 +415,7 @@ function searchUser(){
        document.getElementById('displayWall').style.display = 'flex';
        document.getElementById('displayText').style.display = 'flex';
        document.getElementById('searchMessage').style.color = 'green';
+       updateWall();
      }
      else{
        document.getElementById('searchMessage').style.color = 'red'
