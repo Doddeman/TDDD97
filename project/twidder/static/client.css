@@ -8,14 +8,15 @@
 	margin-left: auto;
   margin-right: auto;
 	margin-top: 100px;
-	/*border: 1px solid black;*/
+	border: 1px solid black;
 }
 
 #image {
+	max-width: 100%;
 	width: 340px;
 	height: 400px;
 	float: left;
-	background-color: black;
+	/*background-color: black;*/
 	margin-right: 10px;
 
 }
@@ -57,13 +58,11 @@
     width: 150px;
 }
 
-
 .tabs{
 	width: 910px;
 	margin-left: auto;
 	margin-right: auto;
 	margin-top: 100px;
-
 }
 
 .tab{
@@ -93,7 +92,7 @@
 .panel{
 	padding-left: 5px;
 	width: 899px;
-	height: 400px;
+	height: 600px;
 	border: 1px solid black;
 	float: left;
 	background-color: lavender;
@@ -111,6 +110,13 @@
 	height: 268px;
 	width: 100%;
 	overflow:auto;
+}
+
+#chart{
+	float: left;
+	width: 300px;
+	height: 200px;
+	flex-direction: row;
 }
 
 #browseWall{

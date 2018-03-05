@@ -30,8 +30,10 @@ def close_connection(exception):
 @socket.route('/echo')
 def echo_socket(ws):
 	while True:
-		email = ws.receive()
-		socket_connections[email] = ws
+		token = ws.receive()
+		if db.validate_credentials(None, None, token):
+			email = db.find_user(token, None)["email"]
+			socket_connections[email] = ws
 		#for k, v in socket_connections.items():
 		#	print(k,v)
 #return
@@ -64,6 +66,11 @@ def sign_up():
 		msg = db.create_user(user)
 		if isinstance(msg, str):
 			return jsonify({'success': False, 'message': msg})
+
+		#Update live data representation
+		for email in socket_connections:
+			ws = socket_connections[email]
+			ws.send("Update registered users")
 		return jsonify({'success': True, 'message': "User successfully created"})
 		#fixa check for om email redan existerar
 		#else:
@@ -85,9 +92,12 @@ def sign_in():
 		if data['email'] in socket_connections:
 			ws = socket_connections[data['email']]
 			ws.send("signout")
-			#ws.send(json.dumps({"data": "sign_out"}))
 			ws.close() #creates error
 			del socket_connections[data['email']]
+		#Update live data representation
+		for email in socket_connections:
+			ws = socket_connections[email]
+			ws.send("update online users")
 
 		#create token
 		alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -120,6 +130,9 @@ def sign_out():
 		return jsonify({'success': False, 'message': "Incorrect token"})
 
 	if db.remove_user(data['key']):
+		for email in socket_connections:
+			ws = socket_connections[email]
+			ws.send("Update online users")
 		return jsonify({'success': True, 'message': 'Logged out successfully'})
 	else:
 		return jsonify({'success': False, 'message': 'Could not log out'})
@@ -213,11 +226,17 @@ def post_message():
 		print "receiver not found"
 		return jsonify({'success': False, 'message': "Receiver not found"})
 
+@app.route('/live', methods=['POST'])
+def live_data():
+	data = db.twidder()
+	return jsonify({'success': True, 'message': "Got live data", "data": data})
+
+
 if __name__== "__main__":
 	print "starting server"
 	init_db()
 	app.debug = True
 	#app.run(port = 8000, debug = True)
-	http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)
+	http_server = WSGIServer(('', 4000), app, handler_class=WebSocketHandler)
 
 	http_server.serve_forever()

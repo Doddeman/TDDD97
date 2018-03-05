@@ -27,9 +27,9 @@ def validate_credentials(email, password, token):
 		WHERE token = ?", [token], True)
 	else:
 		#password = hash(password)
-		password = md5.new(password).hexdigest()
+		password1 = md5.new(password).hexdigest()
 		res = query_db("SELECT email FROM users\
-		WHERE email = ? AND password = ?", [email, password], True)
+		WHERE email = ? AND password = ?", [email, password1], True)
 	if res:
 		return True
 	return False
@@ -144,3 +144,11 @@ def add_message(sender, message, receiver):
 		return True
 	else:
 		return False
+
+def twidder():
+	males = query_db("SELECT COUNT (*) FROM users WHERE gender is \'male\'")
+	females = query_db("SELECT COUNT (*) FROM users WHERE gender is \'female\'")
+	online_users = query_db("SELECT COUNT (*) FROM online_users")
+
+	data = {'males': males, 'females': females, 'online': online_users}
+	return data

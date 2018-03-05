@@ -10,16 +10,39 @@ window.onload = function(){
     showHomePanel();
 		console.log("profile, token: " + localStorage.getItem('token'));
     getUserInfo();
+    twidderData();
+    socket();
 	}
 	else{
   	displayView(welcomeview);
-    //var hashToken = md5("hej");
-    //console.log("hej: " + hashToken)
     //displayView(profileview);
   	console.log("welcome, token: " + localStorage.getItem('token'));
 	}
 };
 
+function socket(){
+  ws = new WebSocket('ws://localhost:4000/echo');
+
+   ws.onopen = function () {
+     var token = localStorage.getItem('token');
+     console.log("Socket open: " + token)
+     ws.send(token);
+   };
+
+   //force logout previous login
+  ws.onmessage = function (message) {
+    //console.log("msgdata: " + message.data)
+    if (message.data == "signout"){
+      console.log("Logged out, logged in somewhere else");
+      localStorage.removeItem("token");
+      displayView(welcomeview);
+    }
+    else{
+      //Update live data representation
+      twidderData();
+    }
+  };
+}
 
 function signIn(){
 	var userName = document.getElementById("userName").value;
@@ -43,29 +66,14 @@ function signIn(){
        var message = parsedJson.message;
        var success = parsedJson.success;
        if(success){
-         ws = new WebSocket('ws://localhost:5000/echo');
-
-          ws.onopen = function () {
-            console.log("Socket open: " + userName)
-            ws.send(userName);
-          };
-
-          //force logout previous login
-         ws.onmessage = function (message) {
-           //console.log("msgdata: " + message.data)
-           if (message.data == "signout"){
-             console.log("Logged out, logged in somewhere else");
-             localStorage.removeItem("token");
-             displayView(welcomeview);
-           }
-         };
-
          localStorage.setItem('token', parsedJson.token);
          console.log("token: " + localStorage.getItem('token'));
          console.log(parsedJson.message);
          displayView(profileview);
          showHomePanel();
          getUserInfo();
+         twidderData();
+         socket();
        }
        else{
          document.getElementById('signInMessage').style.color = 'red';
@@ -204,10 +212,50 @@ function getUserInfo(){
        document.getElementById('uCity').innerHTML = data.city;
        document.getElementById('uCountry').innerHTML = data.country;
        document.getElementById('uEmail').innerHTML = data.email;
+
      }
   };
   xhttp.send();
 };
+
+function twidderData(){
+  var xhttp = new XMLHttpRequest();
+  xhttp.open("POST", "/live", true);
+  xhttp.setRequestHeader("Content-Type", "application/json");
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+     var parsedJson = JSON.parse(xhttp.responseText)
+     var message = parsedJson.message;
+     var success = parsedJson.success;
+     if(success){
+       var data = parsedJson.data;
+       var ctx = document.getElementById('myChart').getContext('2d');
+       var chart = new Chart(ctx, {
+        // The type of chart we want to create
+         type: 'bar',
+        // The data for our dataset
+        data: {
+            labels: ["Male users", "Female users", "Online users"],
+            datasets: [{
+                label: "Live from Twidder",
+                backgroundColor: 'rgb(255, 99, 132)',
+                borderColor: 'rgb(255, 99, 132)',
+                data: [data.males, data.females, data.online],
+            }]
+        },
+
+      // Configuration options go here
+          options: {
+            responsive: true,
+          }
+        });
+      }
+    }
+  }
+  xhttp.send();
+}
+
+
 
 function updateWall(){
   var token = localStorage.getItem('token');
