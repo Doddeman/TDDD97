@@ -1,3 +1,5 @@
+//ctx = document.getElementById('myChart').getContext('2d');
+
 displayView = function(view){
  document.getElementById("clientviewer").innerHTML = view;
 };
@@ -9,10 +11,10 @@ window.onload = function(){
 		displayView(profileview);
     showHomePanel();
 		console.log("profile, token: " + localStorage.getItem('token'));
-    getUserInfo();
+
     updateWall();
-    twidderData();
     socket();
+    getUserInfo();
 	}
 	else{
   	displayView(welcomeview);
@@ -33,10 +35,20 @@ function socket(){
    //force logout previous login
   ws.onmessage = function (message) {
     //console.log("msgdata: " + message.data)
+    var data = JSON.parse(message.data);
+
+
     if (message.data == "signout"){
       console.log("Logged out, logged in somewhere else");
       localStorage.removeItem("token");
       displayView(welcomeview);
+    }
+    else if (data.chartData.online) {
+      var msg = "online";
+      var count = data.chartData.online;
+      console.log("hejhejhej");
+      console.log(count);
+      updateChart(count, msg);
     }
     else{
       //Update live data representation
@@ -72,10 +84,12 @@ function signIn(){
          console.log(parsedJson.message);
          displayView(profileview);
          showHomePanel();
-         getUserInfo();
+
          updateWall();
          twidderData();
          socket();
+         getUserInfo();
+
        }
        else{
          document.getElementById('signInMessage').style.color = 'red';
@@ -220,61 +234,61 @@ function getUserInfo(){
   xhttp.send();
 };
 
+var chart;
 function twidderData(){
-  var xhttp = new XMLHttpRequest();
-  xhttp.open("POST", "/live", true);
-  xhttp.setRequestHeader("Content-Type", "application/json");
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-     var parsedJson = JSON.parse(xhttp.responseText)
-     var message = parsedJson.message;
-     var success = parsedJson.success;
-     if(success){
-       var data = parsedJson.data;
-       var ctx = document.getElementById('myChart').getContext('2d');
-       var chart = new Chart(ctx, {
+   var ctx = document.getElementById('myChart').getContext('2d');
+   chart = new Chart(ctx, {
 
-        // The type of chart we want to create
-         type: 'bar',
-        // The data for our dataset
-        data: {
-            labels: ["Male users", "Female users", "Online users"],
-            datasets: [{
-              label: "Live statistics from Twidder",
-                backgroundColor: 'rgb(0, 51, 204)',
-                data: [data.males, data.females, data.online],
-            }]
-        },
+    // The type of chart we want to create
+     type: 'bar',
+    // The data for our dataset
+    data: {
+        labels: ["Registered Users", "Posted Twidder Messages", "Online Users"],
+        datasets: [{
+          label: "Live statistics from Twidder",
+            backgroundColor: 'rgb(0, 51, 204)',
+            data: [0, 0, 0],
+        }]
+    },
 
-      // Configuration options go here
-          options: {
-            scales: {
-              yAxes: [{
-                ticks: {
-                  beginAtZero: true,
-                  steps: 5,
-                  stepValue: 1,
-                  max: 5,
-                  fontColor: 'black'
-                }
-              }],
-              xAxes: [{
-                ticks: {
-                  fontColor: 'black'
-                }
-              }]
-            },
-            legend: {
-              labels: {
-                fontColor : 'black'
-              }
+  // Configuration options go here
+      options: {
+        scales: {
+          yAxes: [{
+            ticks: {
+              beginAtZero: true,
+              steps: 5,
+              stepValue: 1,
+              max: 10,
+              fontColor: 'black'
             }
+          }],
+          xAxes: [{
+            ticks: {
+              fontColor: 'black'
+            }
+          }]
+        },
+        legend: {
+          labels: {
+            fontColor : 'black'
           }
-        });
+        }
       }
-    }
+    });
+}
+
+function updateChart(count, message){
+  if (message == "online"){
+    chart.data.datasets[0].data[2] = count;
   }
-  xhttp.send();
+  else if(message == "messages"){
+
+  }
+  else if (message == "users"){
+
+  }
+  chart.update()
 }
 
 

@@ -90,7 +90,6 @@ def remove_user(email):
 		return False
 
 def change_password(email, newPassword):
-	#newPassword = hash(newPassword)
 	newPassword = md5.new(newPassword).hexdigest()
 	query_db("UPDATE users SET password = ? WHERE email = ?", [newPassword, email])
 
@@ -146,9 +145,9 @@ def add_message(sender, message, receiver):
 		return False
 
 def twidder():
-	males = query_db("SELECT COUNT (*) FROM users WHERE gender is \'male\'")
-	females = query_db("SELECT COUNT (*) FROM users WHERE gender is \'female\'")
+	users = query_db("SELECT COUNT (*) FROM users")
+	messages = query_db("SELECT COUNT (*) FROM messages")
 	online_users = query_db("SELECT COUNT (*) FROM online_users")
 
-	data = {'males': males, 'females': females, 'online': online_users}
+	data = {'users': users, 'messages': messages, 'online': online_users}
 	return data
