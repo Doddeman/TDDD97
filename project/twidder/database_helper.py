@@ -26,7 +26,6 @@ def validate_credentials(email, password, token):
 		res = query_db("SELECT email FROM online_users\
 		WHERE token = ?", [token], True)
 	else:
-		#password = hash(password)
 		password1 = md5.new(password).hexdigest()
 		res = query_db("SELECT email FROM users\
 		WHERE email = ? AND password = ?", [email, password1], True)
@@ -41,20 +40,9 @@ def get_hash_token(key, hashToken, saltList):
 	salt = ""
 	for arg in saltList:
 		salt += arg
-
-	print "salt: "
-	print salt
-
 	hashSalt = token + salt
-
-	print "hashSalt: "
-	print hashSalt
-
-
-	#flask_bcrypt ???
 	newHashToken = md5.new(hashSalt).hexdigest()
 	if hashToken == newHashToken:
-		print "MATCH"
 		return True
 	else:
 		print "NOT MATCH"
@@ -63,8 +51,6 @@ def get_hash_token(key, hashToken, saltList):
 def create_user(user):
 	if len(query_db("SELECT email FROM users WHERE email = (?)", [user['email']])) > 0:
 		return "Email already taken"
-
-	#user['password'] = hash(user['password'])
 	user['password'] = md5.new(user['password']).hexdigest()
 
 	return query_db("INSERT INTO users VALUES (?,?,?,?,?,?,?)",\
@@ -76,7 +62,6 @@ def logout_other(email):
 	if token:
 		query_db("DELETE FROM online_users WHERE email is ?", [email])
 		return ". Deleted old login"
-		#return token
 
 def add_user(email, token):
 	query_db("INSERT INTO online_users VALUES (?,?)", [email, token])
@@ -135,7 +120,6 @@ def get_messages(token, user_email):
 
 
 def add_message(sender, message, receiver):
-	#sender = query_db("SELECT email FROM online_users WHERE token = (?)", [token])[0][0]
 	db_receiver = query_db("SELECT email FROM users WHERE email = (?)", [receiver])
 	if db_receiver:
 		query_db("INSERT INTO messages (sender, receiver, content) VALUES (?,?,?)",\
@@ -147,7 +131,6 @@ def add_message(sender, message, receiver):
 def twidder():
 	users = query_db("SELECT COUNT (*) FROM users")
 	messages = query_db("SELECT COUNT (*) FROM messages")
-	online_users = query_db("SELECT COUNT (*) FROM online_users")
 
-	data = {'users': users, 'messages': messages, 'online': online_users}
+	data = {'users': users, 'messages': messages}
 	return data

@@ -1,5 +1,3 @@
-//ctx = document.getElementById('myChart').getContext('2d');
-
 displayView = function(view){
  document.getElementById("clientviewer").innerHTML = view;
 };
@@ -8,17 +6,16 @@ window.onload = function(){
   welcomeview  = document.getElementById('welcomeview').innerHTML;
   profileview  = document.getElementById('profileview').innerHTML;
 	if(localStorage.getItem('token')){
+		console.log("profile, token: " + localStorage.getItem('token'));
 		displayView(profileview);
     showHomePanel();
-		console.log("profile, token: " + localStorage.getItem('token'));
-
     updateWall();
+    twidderData();
     socket();
-    getUserInfo();
+
 	}
 	else{
   	displayView(welcomeview);
-    //displayView(profileview);
   	console.log("welcome, token: " + localStorage.getItem('token'));
 	}
 };
@@ -31,28 +28,32 @@ function socket(){
      console.log("Socket open: " + token)
      ws.send(token);
    };
-
    //force logout previous login
   ws.onmessage = function (message) {
-    //console.log("msgdata: " + message.data)
     var data = JSON.parse(message.data);
-
-
-    if (message.data == "signout"){
+    if(data == "socket created"){
+      getUserInfo();
+    }
+    if (data == "signout"){
       console.log("Logged out, logged in somewhere else");
       localStorage.removeItem("token");
       displayView(welcomeview);
     }
+    else if(data.chartData.users){
+      var msg = "users";
+      var userCount = data.chartData.users;
+      updateChart(userCount, msg);
+    }
     else if (data.chartData.online) {
       var msg = "online";
-      var count = data.chartData.online;
-      console.log("hejhejhej");
-      console.log(count);
-      updateChart(count, msg);
+      var onlineCount = data.chartData.online;
+      updateChart(onlineCount, msg);
     }
-    else{
-      //Update live data representation
-      twidderData();
+
+    else if (data.chartData.messages) {
+      var msg = "messages";
+      var msgCount = data.chartData.messages;
+      updateChart(msgCount, msg);
     }
   };
 }
@@ -80,15 +81,13 @@ function signIn(){
        var success = parsedJson.success;
        if(success){
          localStorage.setItem('token', parsedJson.token);
-         console.log("token: " + localStorage.getItem('token'));
+         //console.log("token: " + localStorage.getItem('token'));
          console.log(parsedJson.message);
          displayView(profileview);
          showHomePanel();
-
          updateWall();
-         twidderData();
          socket();
-         getUserInfo();
+         twidderData();
 
        }
        else{
@@ -175,10 +174,7 @@ function changePassword(){
     };
     //hash salt
     var hashSalt = token + oldPassword + newPassword;
-    //console.log("hashSalt: " + hashSalt);
     var hashToken = md5(hashSalt);
-    //console.log("hashT: " + hashToken);
-    //console.log("logpublkey: " + publicKey);
     var publicKey = document.getElementById('uEmail').innerHTML;
 
     xhttp.send(JSON.stringify({"hashToken": hashToken,"old": oldPassword, "new": newPassword, "key": publicKey}));
@@ -212,6 +208,7 @@ function signOut(){
 /*FUNCTIONS FOR HOME PANEL*/
 function getUserInfo(){
   var token = localStorage.getItem('token');
+  console.log("the token: " + token);
   var xhttp = new XMLHttpRequest();
   xhttp.open("GET", "/findself", true);
   xhttp.setRequestHeader("Authorization", token);
@@ -221,6 +218,7 @@ function getUserInfo(){
      console.log("message: " + message);
      var success = parsedJson.success;
      if (success){
+       console.log("success");
        var data = parsedJson.data;
        document.getElementById('uName').innerHTML = data.firstname;
        document.getElementById('uLastname').innerHTML = data.familyname;
@@ -228,7 +226,6 @@ function getUserInfo(){
        document.getElementById('uCity').innerHTML = data.city;
        document.getElementById('uCountry').innerHTML = data.country;
        document.getElementById('uEmail').innerHTML = data.email;
-
      }
   };
   xhttp.send();
@@ -238,7 +235,6 @@ var chart;
 function twidderData(){
    var ctx = document.getElementById('myChart').getContext('2d');
    chart = new Chart(ctx, {
-
     // The type of chart we want to create
      type: 'bar',
     // The data for our dataset
@@ -250,7 +246,6 @@ function twidderData(){
             data: [0, 0, 0],
         }]
     },
-
   // Configuration options go here
       options: {
         scales: {
@@ -279,19 +274,17 @@ function twidderData(){
 }
 
 function updateChart(count, message){
-  if (message == "online"){
-    chart.data.datasets[0].data[2] = count;
+  if (message == "users"){
+    chart.data.datasets[0].data[0] = count;
   }
   else if(message == "messages"){
-
+    chart.data.datasets[0].data[1] = count;
   }
-  else if (message == "users"){
-
+  else if (message == "online"){
+    chart.data.datasets[0].data[2] = count;
   }
   chart.update()
 }
-
-
 
 function updateWall(){
   var token = localStorage.getItem('token');
@@ -317,23 +310,13 @@ function updateWall(){
          var data = parsedJson.data;
          if (home){
            document.getElementById('homeWall').innerHTML = "";
-           //var counter = 0;
            for(var i = 0; i < data.length; i++){
-
-             /*var newDiv = document.createElement("div");
-             document.getElementById('newDiv').innerHTML = "";
-             var newId = "msg" + counter;
-
-             document.getElementById('homeWall').appendChild(div);
-             newDiv.id = newId;*/
-
              if(i % 2 == 0){
                document.getElementById('homeWall').innerHTML += data[i] += ": ";
              }
              else{
                document.getElementById('homeWall').innerHTML += data[i] += "</br>";
              }
-             //counter++;
            }
          }
          else{
@@ -374,9 +357,6 @@ function postToWall(){
        updateWall();
      }
   };
-
-  //flask_bcrypt ???
-
   var salt = message + email;
   var hashSalt = token + salt;
   var hashToken = md5(hashSalt);
@@ -385,6 +365,7 @@ function postToWall(){
   xhttp.send(JSON.stringify({"hashToken": hashToken, "message": message, "receiver": email, "key": publicKey}));
 };
 
+//drag and drop
 function allowDrop(ev) {
     ev.preventDefault();
 }

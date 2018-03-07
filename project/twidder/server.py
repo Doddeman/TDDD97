@@ -33,14 +33,10 @@ def echo_socket(ws):
 		token = ws.receive()
 		if token:
 			if db.validate_credentials(None, None, token):
-				print "added email"
+				#print "added email"
 				email = db.find_user(token, None)["email"]
 				socket_connections[email] = ws
-				print socket_connections[email]
-				print email
-		#for k, v in socket_connections.items():
-		#	print(k,v)
-#return
+				ws.send(json.dumps("socket created"));
 
 def check_expected_json(exp, data):
 	missing = []
@@ -70,15 +66,12 @@ def sign_up():
 		msg = db.create_user(user)
 		if isinstance(msg, str):
 			return jsonify({'success': False, 'message': msg})
-
 		#Update live data representation
+		users = db.twidder()['users'][0][0]
 		for email in socket_connections:
 			ws = socket_connections[email]
-			ws.send("Update registered users")
+			ws.send(json.dumps({"chartData" : {"users": users}}))
 		return jsonify({'success': True, 'message': "User successfully created"})
-		#fixa check for om email redan existerar
-		#else:
-		#	return jsonify({'success': False, 'message': "Could not create user"})
 	else:
 		return jsonify({'success': False, 'message': 'Password too short'})
 
@@ -91,19 +84,11 @@ def sign_in():
 		return jsonify({'success': False, 'message': 'Missing data',\
 		'Missing data': missing})
 	if db.validate_credentials(data['email'], data['password'], None):
-		print "HEJHEJHEJHE1"
-		#Logout from other browser
 		logout_msg = db.logout_other(data['email'])
 		if data['email'] in socket_connections:
-			print "wutt"
 			ws = socket_connections[data['email']]
-			ws.send("signout")
-			#ws.close() #creates error
+			ws.send(json.dumps("signout"))
 			del socket_connections[data['email']]
-		#Update live data representation
-
-
-
 
 		#create token
 		alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -139,7 +124,8 @@ def sign_out():
 		del socket_connections[data['key']]
 		for email in socket_connections:
 			ws = socket_connections[email]
-			ws.send("Update online users")
+			count = len(socket_connections)
+			ws.send(json.dumps({"chartData" : {"online": count}}))
 		return jsonify({'success': True, 'message': 'Logged out successfully'})
 	else:
 		return jsonify({'success': False, 'message': 'Could not log out'})
@@ -147,7 +133,6 @@ def sign_out():
 @app.route('/changepassword', methods=['POST'])
 def change_password():
 	data = request.get_json()
-	#revershash token
 	expected = ["hashToken", "old", "new", "key"]
 	missing = check_expected_json(expected, data)
 	if len(missing) > 0:
@@ -159,7 +144,6 @@ def change_password():
 	if not db.get_hash_token(data['key'], data['hashToken'], args):
 		return jsonify({'success': False, 'message': "Incorrect token"})
 
-	#email = db.find_user(data['token'], None)["email"] #Still needed?
 	if db.validate_credentials(data['key'], data['old'], None):
 		db.change_password(data['key'], data['new'])
 		return jsonify({'success': True, 'message': "Successfully changed password"})
@@ -171,15 +155,16 @@ def get_user_data_by_token(token = None):
 	token = request.headers.get("Authorization")
 	user = db.find_user(token, None)
 	if user:
-		print "len: "
-		print len(socket_connections)
+		#Update chart data
+		data = db.twidder()
+		users = data['users'][0][0]
+		messages = data['messages'][0][0]
 		for email in socket_connections:
-			print "HEJHEJHEJHE"
 			ws = socket_connections[email]
-			# Hamta antala online users. skicka i socket
 			count = len(socket_connections)
+			ws.send(json.dumps({"chartData" : {"users": users}}))
+			ws.send(json.dumps({"chartData" : {"messages": messages}}))
 			ws.send(json.dumps({"chartData" : {"online": count}}))
-			#ws.send("update online users")
 
 		return jsonify({'success': True, 'message': "Found user info", "data": user})
 	else:
@@ -237,17 +222,16 @@ def post_message():
 
 	success = db.add_message(data['key'], data['message'], data['receiver'])
 	if success:
+		messages = db.twidder()['messages'][0][0]
+		for email in socket_connections:
+			ws = socket_connections[email]
+			ws.send(json.dumps({"chartData" : {"messages": messages}}))
+
 		print "success"
 		return jsonify({'success': True, 'message': "Message posted"})
 	else:
 		print "receiver not found"
 		return jsonify({'success': False, 'message': "Receiver not found"})
-
-@app.route('/live', methods=['POST'])
-def live_data():
-	data = db.twidder()
-	return jsonify({'success': True, 'message': "Got live data", "data": data})
-
 
 if __name__== "__main__":
 	print "starting server"
